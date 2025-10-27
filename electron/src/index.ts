@@ -11,7 +11,7 @@ import { logManager } from './utils/log-manager';
 let logger = logManager.getLogger('AppIndex');
 
 // Log app version
-logger.info(`Tockler version: ${app.getVersion()}`);
+logger.info(`Faktions version: ${app.getVersion()}`);
 
 app.setAppUserModelId('ee.trimatech.tockler');
 
