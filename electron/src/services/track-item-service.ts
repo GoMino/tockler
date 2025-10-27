@@ -71,6 +71,10 @@ export class TrackItemService {
                     header: 'Title',
                 },
                 {
+                    key: 'url',
+                    header: 'Url',
+                },
+                {
                     key: 'beginDate',
                     header: 'Begin',
                 },
@@ -82,8 +86,8 @@ export class TrackItemService {
         });
 
         const dialogOpts = {
-            defaultPath: `*/tockler-export_${toDateStr(from)}_${toDateStr(to)}`,
-            filters: [{ name: 'tockler-export', extensions: ['csv'] }],
+            defaultPath: `*/faktions-export_${toDateStr(from)}_${toDateStr(to)}`,
+            filters: [{ name: 'faktions-export', extensions: ['csv'] }],
         };
         const file = dialog.showSaveDialogSync(dialogOpts);
 

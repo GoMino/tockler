@@ -40,7 +40,7 @@ const PremiumButton: React.FC<any> = ({ onRestoreClick, ...rest }) => {
 const PremiumInfo: React.FC<any> = () => (
     <>
         <Box>
-            You are using <b>Basic</b> version of <b>Tockler</b>.
+            You are using <b>Basic</b> version of <b>Faktions</b>.
         </Box>
         <Box pt={3} pb={70}>
             Update to <b>Premium</b> to unlock the <b>full</b> experience.

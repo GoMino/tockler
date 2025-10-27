@@ -31,14 +31,14 @@ export default class AppUpdater {
 
         autoUpdater.on('update-available', (info: UpdateInfo) => {
             showNotification({
-                body: `Downloading Tockler version ${info.version}`,
+                body: `Downloading Faktions version ${info.version}`,
                 title: 'Update available',
                 silent: true,
             });
         });
 
         autoUpdater.on('update-downloaded', async (info: UpdateInfo) => {
-            logger.debug(`Downloaded Tockler version ${info.version}`);
+            logger.debug(`Downloaded Faktions version ${info.version}`);
 
             WindowManager.setTrayIconToUpdate();
 
@@ -55,7 +55,7 @@ export default class AppUpdater {
             } else {
                 logger.error('AutoUpdater error:', e);
                 showNotification({
-                    title: 'Tockler update error',
+                    title: 'Faktions update error',
                     body: e ? e.stack || e : 'unknown',
                 });
             }
@@ -99,7 +99,7 @@ export default class AppUpdater {
         } catch (e) {
             logger.error('Error checking updates', e);
             showNotification({
-                title: 'Tockler error',
+                title: 'Faktions error',
                 body: e ? e.stack || e : 'unknown',
             });
         }

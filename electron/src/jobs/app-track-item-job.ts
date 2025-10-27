@@ -59,7 +59,7 @@ export class AppTrackItemJob {
         if (activeWinError) {
             this.errorDialogIsOpen = true;
             await dialog.showMessageBox({
-                message: activeWinError.replace('active-win', 'Tockler'),
+                message: activeWinError.replace('active-win', 'Faktions'),
             });
 
             this.errorDialogIsOpen = false;

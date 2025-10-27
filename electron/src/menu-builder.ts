@@ -55,15 +55,15 @@ export default class MenuBuilder {
                     {
                         label: 'Learn More',
                         click() {
-                            shell.openExternal('https://github.com/MayGo/tockler');
+                            shell.openExternal('https://x-squad.com');
                         },
                     },
-                    {
-                        label: 'Search Issues',
-                        click() {
-                            shell.openExternal('https://github.com/MayGo/tockler/issues');
-                        },
-                    },
+                    // {
+                    //     label: 'Search Issues',
+                    //     click() {
+                    //         shell.openExternal('https://github.com/MayGo/tockler/issues');
+                    //     },
+                    // },
                 ],
             },
         ];

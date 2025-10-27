@@ -37,7 +37,7 @@ if (gotTheLock || isMas) {
     require('electron-context-menu')({});
 
     ipcMain.on('close-app', function () {
-        logger.info('Closing Tockler');
+        logger.info('Closing Faktions');
         app.quit();
     });
 

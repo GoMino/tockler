@@ -35,6 +35,6 @@ xdescribe('Shell', function () {
 
   it('displays app name', async () => {
     const title = await this.app.browserWindow.getTitle();
-    expect(title).toEqual('Tockler');
+    expect(title).toEqual('Faktions');
   });
 });

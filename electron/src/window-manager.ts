@@ -90,7 +90,7 @@ export default class WindowManager {
                 preload: preloadScript,
                 sandbox: false,
             },
-            title: 'Tockler',
+            title: 'Faktions',
             icon: config.iconWindow,
         });
     }

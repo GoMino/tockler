@@ -5,7 +5,7 @@ import config from './config';
 const isDesktopNotificationSupported = Notification.isSupported();
 const logger = logManager.getLogger('Notification');
 
-export function showNotification({ body, title = 'Tockler', onClick = null, silent = false }) {
+export function showNotification({ body, title = 'Faktions', onClick = null, silent = false }) {
     if (isDesktopNotificationSupported) {
         logger.debug('Showing notification:', body, title);
         const notification = new Notification({
