@@ -1,78 +1,106 @@
-import { last, orderBy } from 'lodash';
-import moment from 'moment';
+import { last } from 'lodash';
+import { DateTime } from 'luxon';
+import { describe, expect, it, test } from 'vitest';
 import {
     getClampHours,
     getOnlineTimesForChart,
     getTotalOnlineDuration,
+    groupByBreaks,
     isBetweenHours,
     isLessThanHours,
-    groupByBreaks,
 } from './OnlineChart.util';
 
 const ONLINE = 'ONLINE';
 const OFFLINE = 'OFFLINE';
 const IDLE = 'IDLE';
 
-const beginDate0 = moment('2021-06-18T23:50:00').valueOf();
-const endDate0 = moment('2021-06-19T00:10:00').valueOf();
+const beginDate18_23_50 = DateTime.fromISO('2021-06-18T23:50:00').toMillis();
+const endDate19_00_10 = DateTime.fromISO('2021-06-19T00:10:00').toMillis();
 
-const beginDate1 = moment('2021-06-19T10:00:00').valueOf();
-const endDate1 = moment('2021-06-19T10:10:00').valueOf();
+const beginDate19_10_00 = DateTime.fromISO('2021-06-19T10:00:00').toMillis();
+const endDate19_10_10 = DateTime.fromISO('2021-06-19T10:10:00').toMillis();
 
-const beginDate2 = moment('2021-06-19T11:50:00').valueOf();
-const endDate2 = moment('2021-06-19T12:10:00').valueOf();
+const beginDate19_11_50 = DateTime.fromISO('2021-06-19T11:50:00').toMillis();
+const endDate_19_12_10 = DateTime.fromISO('2021-06-19T12:10:00').toMillis();
 
-const beginDate3 = moment('2021-06-19T18:50:00').valueOf();
-const endDate3 = moment('2021-06-19T19:10:00').valueOf();
+const beginDate19_18_50 = DateTime.fromISO('2021-06-19T18:50:00').toMillis();
+const endDate19_19_10 = DateTime.fromISO('2021-06-19T19:10:00').toMillis();
 
-const beginDate4 = moment('2021-06-19T23:50:00').valueOf();
-const endDate4 = moment('2021-06-20T00:10:00').valueOf();
+const beginDate_19_23_50 = DateTime.fromISO('2021-06-19T23:50:00').toMillis();
+const endDate20_00_10 = DateTime.fromISO('2021-06-20T00:10:00').toMillis();
 
-const realDate = moment('2021-06-19T10:10:00').valueOf();
+const realDate = DateTime.fromISO('2021-06-19T10:10:00');
+
 describe('OnlineChart getOnlineTimesForChart', () => {
     it('uses only ONLINE items', () => {
-        const beginDate = moment('2021-06-19T18:00:00').valueOf();
-        const otherItems = [
-            {
-                app: OFFLINE,
-                beginDate: moment('2021-06-19T16:00:00').valueOf(),
-                endDate: moment('2021-06-19T17:10:00').valueOf(),
-            },
-            {
-                beginDate: beginDate,
-                endDate: moment('2021-06-19T18:10:00').valueOf(),
-            },
-        ];
+        const onlineItem = {
+            id: 1,
+            app: ONLINE,
+            beginDate: beginDate19_10_00,
+            endDate: endDate19_10_10,
+        };
 
-        const items = [
+        const offlineItems = [
             {
-                app: ONLINE,
-                beginDate: beginDate1,
-                endDate: endDate1,
+                id: 2,
+                app: OFFLINE,
+                beginDate: beginDate19_11_50,
+                endDate: endDate_19_12_10,
+            },
+            {
+                id: 3,
+                app: OFFLINE,
+                beginDate: beginDate19_18_50,
+                endDate: endDate19_19_10,
             },
         ];
 
         const actual = getOnlineTimesForChart({
             ...getClampHours({ realDate, startHour: 0, endHour: 24 }),
-            items: [...items, ...otherItems],
+            items: [onlineItem, ...offlineItems],
         });
 
-        expect(actual.find((item) => item.beginDate === beginDate)).toBeUndefined();
-        expect(actual.find((item) => item.app === OFFLINE)).toBeUndefined();
-        expect(actual.find((item) => item.app === ONLINE)).not.toBeUndefined();
+        expect(actual).toEqual([
+            {
+                beginDate: realDate.startOf('day').toMillis(),
+                endDate: beginDate19_10_00,
+                color: 'transparent',
+                diff: 600,
+                x: 0,
+            },
+            {
+                id: 1,
+                app: ONLINE,
+                beginDate: beginDate19_10_00,
+                endDate: endDate19_10_10,
+                diff: 10,
+                x: 1,
+                color: 'transparent',
+            },
+            {
+                beginDate: endDate19_10_10,
+                endDate: realDate.endOf('day').plus({ milliseconds: 1 }).toMillis(),
+                color: 'transparent',
+                diff: 830,
+                x: 2,
+            },
+        ]);
     });
+
     it('Sets first, last and in between empty items hours 0 to 24', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: beginDate1,
-                endDate: endDate1,
+                beginDate: beginDate19_10_00,
+                endDate: endDate19_10_10,
             },
 
             {
+                id: 2,
                 app: ONLINE,
-                beginDate: beginDate3,
-                endDate: endDate3,
+                beginDate: beginDate19_18_50,
+                endDate: endDate19_19_10,
             },
         ];
 
@@ -82,23 +110,25 @@ describe('OnlineChart getOnlineTimesForChart', () => {
         });
         expect(actual).toEqual([
             {
-                beginDate: moment('2021-06-19T00:00:00').valueOf(),
-                endDate: beginDate1,
+                beginDate: DateTime.fromISO('2021-06-19T00:00:00').toMillis(),
+                endDate: beginDate19_10_00,
                 color: 'transparent',
                 diff: 600,
                 x: 0,
             },
             {
                 app: ONLINE,
-                beginDate: beginDate1,
-                endDate: endDate1,
+                beginDate: beginDate19_10_00,
+                color: 'transparent',
+                endDate: endDate19_10_10,
                 diff: 10,
                 x: 1,
+                id: 1,
             },
 
             {
-                beginDate: endDate1,
-                endDate: beginDate3,
+                beginDate: endDate19_10_10,
+                endDate: beginDate19_18_50,
                 diff: 520,
                 color: 'transparent',
                 x: 2,
@@ -106,14 +136,16 @@ describe('OnlineChart getOnlineTimesForChart', () => {
 
             {
                 app: ONLINE,
-                beginDate: beginDate3,
-                endDate: endDate3,
+                beginDate: beginDate19_18_50,
+                endDate: endDate19_19_10,
                 diff: 20,
+                color: 'transparent',
                 x: 3,
+                id: 2,
             },
             {
-                beginDate: endDate3,
-                endDate: moment('2021-06-19T24:00:00').valueOf(),
+                beginDate: endDate19_19_10,
+                endDate: DateTime.fromISO('2021-06-19T24:00:00').toMillis(),
                 color: 'transparent',
                 diff: 290,
                 x: 4,
@@ -124,15 +156,17 @@ describe('OnlineChart getOnlineTimesForChart', () => {
     it('Sets first, last and in between empty items for hours 12 to 24', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: beginDate1,
-                endDate: endDate1,
+                beginDate: beginDate19_10_00,
+                endDate: endDate19_10_10,
             },
 
             {
+                id: 2,
                 app: ONLINE,
-                beginDate: beginDate3,
-                endDate: endDate3,
+                beginDate: beginDate19_18_50,
+                endDate: endDate19_19_10,
             },
         ];
 
@@ -144,8 +178,8 @@ describe('OnlineChart getOnlineTimesForChart', () => {
 
         expect(actual).toEqual([
             {
-                beginDate: moment('2021-06-19T12:00:00').valueOf(),
-                endDate: beginDate3,
+                beginDate: DateTime.fromISO('2021-06-19T12:00:00').toMillis(),
+                endDate: beginDate19_18_50,
                 color: 'transparent',
                 diff: 410,
                 x: 0,
@@ -153,14 +187,16 @@ describe('OnlineChart getOnlineTimesForChart', () => {
 
             {
                 app: ONLINE,
-                beginDate: beginDate3,
-                endDate: endDate3,
+                beginDate: beginDate19_18_50,
+                endDate: endDate19_19_10,
+                color: 'transparent',
                 diff: 20,
                 x: 1,
+                id: 2,
             },
             {
-                beginDate: endDate3,
-                endDate: moment('2021-06-19T24:00:00').valueOf(),
+                beginDate: endDate19_19_10,
+                endDate: DateTime.fromISO('2021-06-19T24:00:00').toMillis(),
                 color: 'transparent',
                 diff: 290,
                 x: 2,
@@ -171,9 +207,10 @@ describe('OnlineChart getOnlineTimesForChart', () => {
     it('Clamps items for hours 12 to 24 beginDate', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: beginDate2,
-                endDate: endDate2,
+                beginDate: beginDate19_11_50,
+                endDate: endDate_19_12_10,
             },
         ];
 
@@ -186,14 +223,16 @@ describe('OnlineChart getOnlineTimesForChart', () => {
         expect(actual).toEqual([
             {
                 app: ONLINE,
-                beginDate: moment('2021-06-19T12:00:00').valueOf(),
-                endDate: endDate2,
+                beginDate: DateTime.fromISO('2021-06-19T12:00:00').toMillis(),
+                color: 'transparent',
+                endDate: endDate_19_12_10,
                 diff: 10,
                 x: 0,
+                id: 1,
             },
             {
-                beginDate: endDate2,
-                endDate: moment('2021-06-19T24:00:00').valueOf(),
+                beginDate: endDate_19_12_10,
+                endDate: DateTime.fromISO('2021-06-19T24:00:00').toMillis(),
                 color: 'transparent',
                 diff: 710,
                 x: 1,
@@ -204,9 +243,10 @@ describe('OnlineChart getOnlineTimesForChart', () => {
     it('Clamps items for hours 12 to 24 endDate', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: beginDate2,
-                endDate: endDate2,
+                beginDate: beginDate19_11_50,
+                endDate: endDate_19_12_10,
             },
         ];
 
@@ -217,17 +257,19 @@ describe('OnlineChart getOnlineTimesForChart', () => {
 
         expect(actual).toEqual([
             {
-                beginDate: moment('2021-06-19T00:00:00').valueOf(),
-                endDate: beginDate2,
+                beginDate: DateTime.fromISO('2021-06-19T00:00:00').toMillis(),
+                endDate: beginDate19_11_50,
                 color: 'transparent',
                 diff: 710,
                 x: 0,
             },
             {
                 app: ONLINE,
-                beginDate: beginDate2,
-                endDate: moment('2021-06-19T12:00:00').valueOf(),
+                beginDate: beginDate19_11_50,
+                color: 'transparent',
+                endDate: DateTime.fromISO('2021-06-19T12:00:00').toMillis(),
                 diff: 10,
+                id: 1,
                 x: 1,
             },
         ]);
@@ -235,9 +277,10 @@ describe('OnlineChart getOnlineTimesForChart', () => {
     it('Clamps items for hours 12 to 24 endDate next day', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: beginDate4,
-                endDate: endDate4,
+                beginDate: beginDate_19_23_50,
+                endDate: endDate20_00_10,
             },
         ];
 
@@ -248,17 +291,19 @@ describe('OnlineChart getOnlineTimesForChart', () => {
 
         expect(actual).toEqual([
             {
-                beginDate: moment('2021-06-19T12:00:00').valueOf(),
-                endDate: beginDate4,
+                beginDate: DateTime.fromISO('2021-06-19T12:00:00').toMillis(),
+                endDate: beginDate_19_23_50,
                 color: 'transparent',
                 diff: 710,
                 x: 0,
             },
             {
                 app: ONLINE,
-                beginDate: beginDate4,
-                endDate: moment('2021-06-19T24:00:00').valueOf(),
+                beginDate: beginDate_19_23_50,
+                color: 'transparent',
+                endDate: DateTime.fromISO('2021-06-19T24:00:00').toMillis(),
                 diff: 10,
+                id: 1,
                 x: 1,
             },
         ]);
@@ -267,9 +312,10 @@ describe('OnlineChart getOnlineTimesForChart', () => {
     it('Clamps items for hours 0 to 12 beginDate previous day', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: beginDate0,
-                endDate: endDate0,
+                beginDate: beginDate18_23_50,
+                endDate: endDate19_00_10,
             },
         ];
 
@@ -281,14 +327,16 @@ describe('OnlineChart getOnlineTimesForChart', () => {
         expect(actual).toEqual([
             {
                 app: ONLINE,
-                beginDate: moment('2021-06-19T00:00:00').valueOf(),
-                endDate: endDate0,
+                beginDate: DateTime.fromISO('2021-06-19T00:00:00').toMillis(),
+                endDate: endDate19_00_10,
+                color: 'transparent',
                 diff: 10,
+                id: 1,
                 x: 0,
             },
             {
-                beginDate: endDate0,
-                endDate: moment('2021-06-19T12:00:00').valueOf(),
+                beginDate: endDate19_00_10,
+                endDate: DateTime.fromISO('2021-06-19T12:00:00').toMillis(),
                 color: 'transparent',
                 diff: 710,
                 x: 1,
@@ -297,8 +345,11 @@ describe('OnlineChart getOnlineTimesForChart', () => {
     });
 });
 
+const getMillisFromTime = (time: string) => {
+    return DateTime.fromISO(`2021-06-19T${time}`).toMillis();
+};
 const getDateFromTime = (time: string) => {
-    return moment(`2021-06-19T${time}`).valueOf();
+    return DateTime.fromISO(`2021-06-19T${time}`);
 };
 
 const MINUTES = 60 * 1000;
@@ -308,32 +359,48 @@ describe('OnlineChart groupByBreaks', () => {
     it('groupByBreaks take items until finds minimal break time.', () => {
         const chunk1 = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:29:00'),
-                endDate: getDateFromTime('08:39:00'),
+                beginDate: getMillisFromTime('08:29:00'),
+                endDate: getMillisFromTime('08:39:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 0,
             },
 
             {
+                id: 2,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:15:00'),
-                endDate: getDateFromTime('08:25:00'),
+                beginDate: getMillisFromTime('08:15:00'),
+                endDate: getMillisFromTime('08:25:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 1,
             },
             {
+                id: 3,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:14:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:14:00'),
+                color: 'transparent',
+                diff: 14,
+                x: 2,
             },
         ];
         const chunk2 = [
             {
+                id: 4,
                 app: ONLINE,
-                beginDate: getDateFromTime('07:00:00'),
-                endDate: getDateFromTime('07:10:00'),
+                beginDate: getMillisFromTime('07:00:00'),
+                endDate: getMillisFromTime('07:10:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 0,
             },
         ];
 
         const sorted = [...chunk1, ...chunk2];
-        let grouped = groupByBreaks(sorted, minBreakTime);
+        const grouped = groupByBreaks(sorted, minBreakTime);
 
         expect(grouped).toEqual([chunk1, chunk2]);
     });
@@ -341,53 +408,81 @@ describe('OnlineChart groupByBreaks', () => {
     it('groupByBreaks groups all items', () => {
         const chunk1 = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:29:00'),
-                endDate: getDateFromTime('08:39:00'),
+                beginDate: getMillisFromTime('08:29:00'),
+                endDate: getMillisFromTime('08:39:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 0,
             },
 
             {
+                id: 2,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:15:00'),
-                endDate: getDateFromTime('08:25:00'),
+                beginDate: getMillisFromTime('08:15:00'),
+                endDate: getMillisFromTime('08:25:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 1,
             },
             {
+                id: 3,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:14:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:14:00'),
+                color: 'transparent',
+                diff: 14,
+                x: 2,
             },
         ];
         const chunk2 = [
             {
+                id: 4,
                 app: ONLINE,
-                beginDate: getDateFromTime('07:00:00'),
-                endDate: getDateFromTime('07:10:00'),
+                beginDate: getMillisFromTime('07:00:00'),
+                endDate: getMillisFromTime('07:10:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 0,
             },
         ];
 
         const chunk3 = [
             {
+                id: 5,
                 app: ONLINE,
-                beginDate: getDateFromTime('06:50:00'),
-                endDate: getDateFromTime('06:51:00'),
+                beginDate: getMillisFromTime('06:50:00'),
+                endDate: getMillisFromTime('06:51:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 0,
             },
         ];
 
         const chunk4 = [
             {
+                id: 6,
                 app: ONLINE,
-                beginDate: getDateFromTime('06:00:00'),
-                endDate: getDateFromTime('06:10:00'),
+                beginDate: getMillisFromTime('06:00:00'),
+                endDate: getMillisFromTime('06:10:00'),
+                color: 'transparent',
+                diff: 10,
+                x: 0,
             },
             {
+                id: 7,
                 app: ONLINE,
-                beginDate: getDateFromTime('05:00:00'),
-                endDate: getDateFromTime('05:55:00'),
+                beginDate: getMillisFromTime('05:00:00'),
+                endDate: getMillisFromTime('05:55:00'),
+                color: 'transparent',
+                diff: 55,
+                x: 1,
             },
         ];
 
         const sorted = [...chunk1, ...chunk2, ...chunk3, ...chunk4];
-        let grouped = groupByBreaks(sorted, minBreakTime);
+        const grouped = groupByBreaks(sorted, minBreakTime);
 
         expect(grouped).toEqual([chunk1, chunk2, chunk3, chunk4]);
     });
@@ -396,18 +491,20 @@ describe('OnlineChart getTotalOnlineDuration', () => {
     it('getTotalOnlineDuration sums diffs', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:15:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:15:00'),
             },
             {
+                id: 2,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:15:00'),
-                endDate: getDateFromTime('08:25:00'),
+                beginDate: getMillisFromTime('08:15:00'),
+                endDate: getMillisFromTime('08:25:00'),
             },
         ];
-        const now = last(items)?.endDate;
-        let duration = getTotalOnlineDuration(now, items, minBreakTime);
+        const now = DateTime.fromMillis(last(items)?.endDate || 0);
+        const duration = getTotalOnlineDuration(now, items, minBreakTime);
 
         expect(duration).toEqual([25 * MINUTES]);
     });
@@ -415,18 +512,20 @@ describe('OnlineChart getTotalOnlineDuration', () => {
     it('getTotalOnlineDuration returns 0 if no ONLINE items', () => {
         const items = [
             {
+                id: 1,
                 app: OFFLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:15:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:15:00'),
             },
             {
+                id: 2,
                 app: IDLE,
-                beginDate: getDateFromTime('08:15:00'),
-                endDate: getDateFromTime('08:25:00'),
+                beginDate: getMillisFromTime('08:15:00'),
+                endDate: getMillisFromTime('08:25:00'),
             },
         ];
-        const now = last(items)?.endDate;
-        let duration = getTotalOnlineDuration(now, items, minBreakTime);
+        const now = DateTime.fromMillis(last(items)?.endDate || 0);
+        const duration = getTotalOnlineDuration(now, items, minBreakTime);
 
         expect(duration).toEqual([0]);
     });
@@ -434,78 +533,89 @@ describe('OnlineChart getTotalOnlineDuration', () => {
     it('getTotalOnlineDuration only sums ONLINE items', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:10:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:10:00'),
             },
             {
-                beginDate: getDateFromTime('08:11:00'),
-                endDate: getDateFromTime('08:14:00'),
+                id: 2,
+                app: ONLINE,
+                beginDate: getMillisFromTime('08:11:00'),
+                endDate: getMillisFromTime('08:14:00'),
             },
         ];
-        const now = last(items)?.endDate;
-        let duration = getTotalOnlineDuration(now, items, minBreakTime);
+        const now = DateTime.fromMillis(last(items)?.endDate || 0);
+        const duration = getTotalOnlineDuration(now, items, minBreakTime);
 
-        expect(duration).toEqual([10 * MINUTES]);
+        expect(duration).toEqual([13 * MINUTES]);
     });
 
     it('getTotalOnlineDuration take items until finds minimal break time.', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: getDateFromTime('07:00:00'),
-                endDate: getDateFromTime('07:10:00'),
+                beginDate: getMillisFromTime('07:00:00'),
+                endDate: getMillisFromTime('07:10:00'),
             },
             {
+                id: 2,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:14:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:14:00'),
             },
 
             {
+                id: 3,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:15:00'),
-                endDate: getDateFromTime('08:25:00'),
+                beginDate: getMillisFromTime('08:15:00'),
+                endDate: getMillisFromTime('08:25:00'),
             },
             {
+                id: 4,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:29:00'),
-                endDate: getDateFromTime('08:39:00'),
+                beginDate: getMillisFromTime('08:29:00'),
+                endDate: getMillisFromTime('08:39:00'),
             },
         ];
 
-        const now = last(items)?.endDate;
-        let duration = getTotalOnlineDuration(now, items, minBreakTime);
+        const now = DateTime.fromMillis(last(items)?.endDate || 0);
+        const duration = getTotalOnlineDuration(now, items, minBreakTime);
 
         expect(duration).toEqual([34 * MINUTES, 10 * MINUTES]);
     });
     it('getTotalOnlineDuration ignores items in creater then time specified', () => {
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: getDateFromTime('07:00:00'),
-                endDate: getDateFromTime('07:10:00'),
+                beginDate: getMillisFromTime('07:00:00'),
+                endDate: getMillisFromTime('07:10:00'),
             },
             {
+                id: 2,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:14:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:14:00'),
             },
 
             {
+                id: 3,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:15:00'),
-                endDate: getDateFromTime('08:25:00'),
+                beginDate: getMillisFromTime('08:15:00'),
+                endDate: getMillisFromTime('08:25:00'),
             },
             {
+                id: 4,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:29:00'),
-                endDate: getDateFromTime('08:39:00'),
+                beginDate: getMillisFromTime('08:29:00'),
+                endDate: getMillisFromTime('08:39:00'),
             },
         ];
 
         const now = getDateFromTime('08:15:00');
-        let duration = getTotalOnlineDuration(now, items, minBreakTime);
+        const duration = getTotalOnlineDuration(now, items, minBreakTime);
 
         expect(duration).toEqual([14 * MINUTES, 10 * MINUTES]);
     });
@@ -514,12 +624,13 @@ describe('OnlineChart getTotalOnlineDuration', () => {
         const now = getDateFromTime('08:25:00');
         const items = [
             {
+                id: 1,
                 app: ONLINE,
-                beginDate: getDateFromTime('08:00:00'),
-                endDate: getDateFromTime('08:20:00'),
+                beginDate: getMillisFromTime('08:00:00'),
+                endDate: getMillisFromTime('08:20:00'),
             },
         ];
-        let duration = getTotalOnlineDuration(now, items, minBreakTime);
+        const duration = getTotalOnlineDuration(now, items, minBreakTime);
 
         expect(duration).toEqual([0]);
     });
@@ -527,57 +638,65 @@ describe('OnlineChart getTotalOnlineDuration', () => {
 
 describe('OnlineChart isBetweenHours', () => {
     it('isBetweenHours returns correctly if partly out of range in end part', () => {
-        let startHour = 12;
-        let endHour = 24;
+        const startHour = 12;
+        const endHour = 24;
 
-        let { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
+        const { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
 
         expect(
             isBetweenHours({ beginClamp, endClamp })({
-                beginDate: beginDate4,
-                endDate: endDate4,
+                id: 1,
+                app: ONLINE,
+                beginDate: beginDate_19_23_50,
+                endDate: endDate20_00_10,
             }),
         ).toBeTruthy();
     });
 
     it('isBetweenHours returns correctly if partly out of range in start part', () => {
-        let startHour = 0;
-        let endHour = 12;
+        const startHour = 0;
+        const endHour = 12;
 
-        let { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
+        const { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
 
         expect(
             isBetweenHours({ beginClamp, endClamp })({
-                beginDate: beginDate2,
-                endDate: beginDate2,
+                id: 1,
+                app: ONLINE,
+                beginDate: beginDate19_11_50,
+                endDate: beginDate19_11_50,
             }),
         ).toBeTruthy();
     });
 
     it('isBetweenHours returns correctly false if date is out of range ', () => {
-        let startHour = 0;
-        let endHour = 12;
+        const startHour = 0;
+        const endHour = 12;
 
-        let { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
+        const { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
 
         expect(
             isBetweenHours({ beginClamp, endClamp })({
-                beginDate: beginDate4,
-                endDate: endDate4,
+                id: 1,
+                app: ONLINE,
+                beginDate: beginDate_19_23_50,
+                endDate: endDate20_00_10,
             }),
         ).toBeFalsy();
     });
 
     it('isBetweenHours returns correctly false if date is out of range in start part', () => {
-        let startHour = 12;
-        let endHour = 24;
+        const startHour = 12;
+        const endHour = 24;
 
-        let { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
+        const { beginClamp, endClamp } = getClampHours({ realDate, startHour, endHour });
 
         expect(
             isBetweenHours({ beginClamp, endClamp })({
-                beginDate: beginDate2,
-                endDate: beginDate2,
+                id: 1,
+                app: ONLINE,
+                beginDate: beginDate19_11_50,
+                endDate: beginDate19_11_50,
             }),
         ).toBeFalsy();
     });
@@ -586,19 +705,28 @@ describe('OnlineChart isBetweenHours', () => {
 test('isLessThanHours returns correctly', () => {
     expect(
         isLessThanHours(getDateFromTime('08:15:00'))({
-            endDate: getDateFromTime('08:15:00'),
+            id: 1,
+            app: ONLINE,
+            beginDate: getMillisFromTime('08:15:00'),
+            endDate: getMillisFromTime('08:15:00'),
         }),
     ).toBeTruthy();
 
     expect(
         isLessThanHours(getDateFromTime('08:15:00'))({
-            endDate: getDateFromTime('08:14:00'),
+            id: 1,
+            app: ONLINE,
+            beginDate: getMillisFromTime('08:14:00'),
+            endDate: getMillisFromTime('08:14:00'),
         }),
     ).toBeTruthy();
 
     expect(
         isLessThanHours(getDateFromTime('08:15:00'))({
-            endDate: getDateFromTime('08:16:00'),
+            id: 1,
+            app: ONLINE,
+            beginDate: getMillisFromTime('08:14:00'),
+            endDate: getMillisFromTime('08:16:00'),
         }),
     ).not.toBeTruthy();
 });

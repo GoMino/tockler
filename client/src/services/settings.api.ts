@@ -1,7 +1,9 @@
-import { EventEmitter } from './EventEmitter';
+import { ITrackItem } from '../@types/ITrackItem';
 import { Logger } from '../logger';
+import { ElectronEventEmitter } from './ElectronEventEmitter';
 
-const { electronBridge } = window as any;
+// Use the Window interface extension from global declarations
+const { electronBridge } = window;
 const { configGet, configSet } = electronBridge;
 
 const THEME_CONFIG_KEY = 'selectedTheme';
@@ -12,6 +14,7 @@ const IS_AUTO_UPDATE_ENABLED = 'isAutoUpdateEnabled';
 const NATIVE_THEME_CONFIG_CHANGED = 'nativeThemeChanged';
 const USE_PURPLE_TRAY_ICON = 'usePurpleTrayIcon';
 const USE_PURPLE_TRAY_ICON_CHANGED = 'usePurpleTrayIconChanged';
+const MAC_AUTO_HIDE_MENU_BAR_ENABLED = 'macAutoHideMenuBarEnabled';
 
 export function getNativeThemeChange() {
     return configGet(IS_NATIVE_THEME_ENABLED) as boolean;
@@ -19,7 +22,7 @@ export function getNativeThemeChange() {
 
 export function saveNativeThemeChange(enabled) {
     configSet(IS_NATIVE_THEME_ENABLED, enabled);
-    EventEmitter.send(NATIVE_THEME_CONFIG_CHANGED);
+    ElectronEventEmitter.send(NATIVE_THEME_CONFIG_CHANGED);
 }
 
 // -----
@@ -31,7 +34,7 @@ export function getOpenAtLogin() {
 export function saveOpenAtLogin(openAtLogin) {
     if (openAtLogin !== getOpenAtLogin()) {
         configSet(OPEN_AT_LOGIN, openAtLogin);
-        EventEmitter.send('openAtLoginChanged');
+        ElectronEventEmitter.send('openAtLoginChanged');
     }
 }
 
@@ -67,9 +70,16 @@ export function getUsePurpleTrayIcon() {
     return configGet(USE_PURPLE_TRAY_ICON) as boolean;
 }
 
+export function getMacAutoHideMenuBarEnabled() {
+    return configGet(MAC_AUTO_HIDE_MENU_BAR_ENABLED) as boolean;
+}
+
+export function saveMacAutoHideMenuBarEnabled(enabled) {
+    configSet(MAC_AUTO_HIDE_MENU_BAR_ENABLED, enabled);
+}
 export function saveUsePurpleTrayIcon(enabled) {
     configSet(USE_PURPLE_TRAY_ICON, enabled);
-    EventEmitter.send(USE_PURPLE_TRAY_ICON_CHANGED);
+    ElectronEventEmitter.send(USE_PURPLE_TRAY_ICON_CHANGED);
 }
 
 export function getThemeFromStorage() {
@@ -80,31 +90,31 @@ export function getThemeFromStorage() {
 
 export function saveThemeToStorage(colorMode) {
     Logger.info('Save theme to config:', colorMode);
-    return EventEmitter.emit('saveThemeAndNotify', colorMode);
+    return ElectronEventEmitter.emit('saveThemeAndNotify', colorMode);
 }
 
 export async function updateByName(name, jsonData) {
     Logger.debug('updateByName', JSON.stringify(jsonData));
-    return EventEmitter.emit('updateByName', { name, jsonData: JSON.stringify(jsonData) });
+    return ElectronEventEmitter.emit('updateByName', { name, jsonData: JSON.stringify(jsonData) });
 }
 
-export async function notifyUser(message) {
-    Logger.debug('notifyUser', message);
-    return EventEmitter.emit('notifyUser', { message });
+export async function notifyUser(durationMs: number) {
+    Logger.debug('notifyUser', durationMs);
+    return ElectronEventEmitter.emit('notifyUser', { durationMs });
 }
 
 export function getRunningLogItem() {
-    return EventEmitter.emit('getRunningLogItemAsJson');
+    return ElectronEventEmitter.emit('getRunningLogItemAsJson') as Promise<ITrackItem>;
 }
 
 export function getMachineId() {
-    return EventEmitter.emit('getMachineId');
+    return ElectronEventEmitter.emit('getMachineId');
 }
 
 export async function fetchWorkSettings() {
-    const jsonStr = await EventEmitter.emit('fetchWorkSettingsJsonString');
+    const jsonStr = await ElectronEventEmitter.emit('fetchWorkSettingsJsonString');
     try {
-        return JSON.parse(jsonStr);
+        return JSON.parse(jsonStr as string);
     } catch (e) {
         Logger.error('Error in fetchWorkSettings', jsonStr, e);
         return null;
@@ -112,9 +122,9 @@ export async function fetchWorkSettings() {
 }
 
 export async function fetchDataSettings() {
-    const jsonStr = await EventEmitter.emit('fetchDataSettingsJsonString');
+    const jsonStr = await ElectronEventEmitter.emit('fetchDataSettingsJsonString');
     try {
-        return JSON.parse(jsonStr);
+        return JSON.parse(jsonStr as string);
     } catch (e) {
         Logger.error('Error in fetchDataSettings', jsonStr, e);
         return null;
@@ -127,18 +137,29 @@ export function saveWorkSettings(data) {
 
 export function saveDataSettings(data) {
     updateByName('DATA_SETTINGS', data);
-    return EventEmitter.emit('updateByNameDataSettings', { name: 'DATA_SETTINGS', jsonData: JSON.stringify(data) });
+    return ElectronEventEmitter.emit('updateByNameDataSettings', {
+        name: 'DATA_SETTINGS',
+        jsonData: JSON.stringify(data),
+    });
 }
 
 export function saveAnalyserSettings(data) {
     updateByName('ANALYSER_SETTINGS', data);
 }
 
+export async function getTaskAnalyserEnabled() {
+    return ElectronEventEmitter.emit('getTaskAnalyserEnabled') as Promise<boolean>;
+}
+
+export async function setTaskAnalyserEnabled(enabled: boolean) {
+    return ElectronEventEmitter.emit('setTaskAnalyserEnabled', { enabled });
+}
+
 export async function fetchAnalyserSettings() {
-    const jsonStr = await EventEmitter.emit('fetchAnalyserSettingsJsonString');
-    Logger.debug('fetchAnalyserSettings', jsonStr);
+    const jsonStr = await ElectronEventEmitter.emit('fetchAnalyserSettingsJsonString');
+
     try {
-        return JSON.parse(jsonStr);
+        return JSON.parse(jsonStr as string);
     } catch (e) {
         Logger.error('fetchAnalyserSettings', jsonStr, e);
         return [];

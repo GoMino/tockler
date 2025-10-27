@@ -1,24 +1,44 @@
-// tslint:disable-next-line: no-submodule-imports
-
+import { FilterFn, Row, SortingState } from '@tanstack/react-table';
+import { differenceInMilliseconds } from 'date-fns';
 import { sumBy } from 'lodash';
-import moment from 'moment';
-import { convertDate } from '../../constants';
-
-// A great library for fuzzy filtering/sorting items
 import { matchSorter } from 'match-sorter';
+import { ITrackItem } from '../../@types/ITrackItem';
 
-export const calculateTotal = (filteredData) => {
-    const totalMs = sumBy(filteredData, (c: any) => convertDate(c.endDate).diff(convertDate(c.beginDate)));
-    const dur = moment.duration(totalMs);
+export const calculateTotal = (filteredData: ITrackItem[]) => {
+    const totalMs = sumBy(filteredData, (trackItem: ITrackItem) => {
+        return differenceInMilliseconds(trackItem.endDate, trackItem.beginDate);
+    });
 
-    return dur.format();
+    return totalMs;
 };
 
-export const totalToDuration = (totalMs) => moment.duration(totalMs).format();
+// Use matchSorter for fuzzy matching
+export const fuzzyTextFilterFn: FilterFn<ITrackItem> = (row: Row<ITrackItem>, columnId: string, value: string) => {
+    // Rank the item
+    const itemRank = matchSorter([row.getValue(columnId)], value);
 
-export function fuzzyTextFilterFn(rows, id, filterValue) {
-    return matchSorter(rows, filterValue, { keys: [(row: any) => row.values[id]] });
-}
+    return itemRank.length > 0;
+};
 
 // Let the table remove the filter if the string is empty
-fuzzyTextFilterFn.autoRemove = (val) => !val;
+fuzzyTextFilterFn.autoRemove = (val: string) => !val;
+
+export interface TableButtonsProps {
+    selectedFlatRows: Row<ITrackItem>[];
+    selectedRowIds: Record<string, boolean>;
+    setAllFilters: () => void;
+    setSortBy: (sortBy: SortingState) => void;
+    pageIndex: number;
+    pageSize: number;
+    fetchData?: (options: { pageIndex: number; pageSize: number; sortBy: SortingState }) => void;
+}
+
+export const defaultTableButtonsProps: TableButtonsProps = {
+    selectedFlatRows: [],
+    selectedRowIds: {},
+    setAllFilters: () => {},
+    setSortBy: () => {},
+    pageIndex: 0,
+    pageSize: 10,
+    fetchData: () => {},
+};

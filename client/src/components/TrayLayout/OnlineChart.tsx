@@ -1,19 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { VictoryContainer, VictoryPie } from 'victory';
-import { colorProp } from '../charts.utils';
+import { Box, Button, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
+import { DateTime } from 'luxon';
+import { useContext, useEffect, useState } from 'react';
+import { VictoryContainer, VictoryPie, VictoryStyleInterface } from 'victory';
+import { ITrackItem } from '../../@types/ITrackItem';
+import { RootContext } from '../../RootContext';
 import { useChartThemeState } from '../../routes/ChartThemeProvider';
-import { PieLabel } from '../PieCharts/PieLabel';
-import { formatToTime } from '../LineCharts/LineChart.util';
-import { shortTime } from '../../time.util';
-import { CLOCK_MODE, getOnlineTimesForChart, getQuarters, getTotalOnlineDuration } from './OnlineChart.util';
-import moment from 'moment';
-import { Box, VStack, HStack, Text, Button, useColorModeValue } from '@chakra-ui/react';
-import { ChartCircles } from './ChartCircles';
+import { colorProp } from '../charts.utils';
 import { getOnlineTime } from '../PieCharts/MetricTiles.utils';
 import { ShortTimeInterval } from '../TrayList/ShortTimeInterval';
-import { RootContext } from '../../RootContext';
-import { notifyUser } from '../../services/settings.api';
-import { useInterval } from '../../hooks/intervalHook';
+import { ChartCircles } from './ChartCircles';
+import { CLOCK_MODE, getOnlineTimesForChart, getQuarters, getTotalOnlineDuration } from './OnlineChart.util';
+import { OnlineChartTooltipLabel } from './OnlineChartTooltipLabel';
 
 const QuarterLabel = (props) => (
     <Box width="20px" height="20px">
@@ -23,47 +20,22 @@ const QuarterLabel = (props) => (
 
 const MINUTES = 60 * 1000;
 
-export const OnlineChart = ({ items }) => {
+export const OnlineChart = ({ items }: { items: ITrackItem[] }) => {
     const { workSettings } = useContext(RootContext);
-
     const { chartTheme } = useChartThemeState();
     const [mode, setMode] = useState(CLOCK_MODE.HOURS_12);
-
-    const [currentSession, setCurrentSession] = useState<any | undefined>();
-    const [userHasBeenNotified, setUserHasBeenNotified] = useState(false);
-    const [lastSession, setLastSession] = useState<any | undefined>();
+    const [currentSession, setCurrentSession] = useState<number>(0);
+    const [lastSession, setLastSession] = useState<number | undefined>();
     const onlineSinceColor = useColorModeValue('var(--chakra-colors-blue-500)', 'var(--chakra-colors-blue-500)');
     const overtimeColor = 'var(--chakra-colors-red-500)';
 
-    const { sessionLength, minBreakTime, reNotifyInterval, smallNotificationsEnabled } = workSettings;
+    const { sessionLength, minBreakTime } = workSettings;
 
     const MAX_TIMER = sessionLength * MINUTES;
     const sessionIsOvertime = currentSession > MAX_TIMER;
 
     useEffect(() => {
-        if (sessionIsOvertime && smallNotificationsEnabled) {
-            if (!userHasBeenNotified) {
-                console.warn('Notifying user to take a break');
-                notifyUser(currentSession);
-                setUserHasBeenNotified(true);
-            }
-        } else {
-            setUserHasBeenNotified(false);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sessionIsOvertime, currentSession, smallNotificationsEnabled]);
-
-    useInterval(
-        () => {
-            console.info('Calling interval');
-
-            notifyUser(currentSession);
-        },
-        sessionIsOvertime && reNotifyInterval > 0 && smallNotificationsEnabled ? reNotifyInterval * MINUTES : null,
-    );
-
-    useEffect(() => {
-        const grouped = getTotalOnlineDuration(moment(), items, minBreakTime);
+        const grouped = getTotalOnlineDuration(DateTime.now(), items, minBreakTime);
         const sessionTime = grouped[0];
         setCurrentSession(sessionTime);
 
@@ -72,13 +44,12 @@ export const OnlineChart = ({ items }) => {
         } else {
             setLastSession(undefined);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items]);
+    }, [items, minBreakTime]);
 
     const width = 300;
 
     const innerWidth = 230;
-    const [startDate, firstQuarter, secondQuarter, thirdQuarter, endDate] = getQuarters(moment(), mode);
+    const [startDate, firstQuarter, secondQuarter, thirdQuarter, endDate] = getQuarters(DateTime.now(), mode);
 
     const onlineTimeMs = getOnlineTime(items, [startDate, endDate]);
 
@@ -89,7 +60,7 @@ export const OnlineChart = ({ items }) => {
         mode,
     });
 
-    const style: any = {
+    const style: VictoryStyleInterface = {
         data: {
             fill: colorProp,
             stroke: colorProp,
@@ -100,19 +71,12 @@ export const OnlineChart = ({ items }) => {
 
     const sessionLine = MAX_TIMER - currentSession;
 
-    console.info('Online Chart configuration', {
-        workSettings,
-        MAX_TIMER,
-        currentSession,
-        sessionLine,
-    });
-
     return (
         <VStack position="relative">
-            <QuarterLabel>{startDate.hour()}</QuarterLabel>
+            <QuarterLabel>{startDate.hour}</QuarterLabel>
 
             <HStack>
-                <QuarterLabel>{thirdQuarter.hour()} </QuarterLabel>
+                <QuarterLabel>{thirdQuarter.hour}</QuarterLabel>
 
                 <Box>
                     <ChartCircles
@@ -130,14 +94,9 @@ export const OnlineChart = ({ items }) => {
                         innerRadius={innerWidth / 2}
                         containerComponent={<VictoryContainer responsive={false} />}
                         style={style}
-                        labels={({ datum }) => {
-                            const { beginDate, endDate, diff } = datum;
-
-                            return `${shortTime(diff * 1000 * 60)}\r\n${formatToTime(beginDate)} - ${formatToTime(
-                                endDate,
-                            )}`;
-                        }}
-                        labelComponent={<PieLabel width={width} innerWidth={innerWidth - 10} theme={chartTheme} />}
+                        labelComponent={
+                            <OnlineChartTooltipLabel width={width} innerWidth={innerWidth - 10} theme={chartTheme} />
+                        }
                         y={(datum) => datum.diff}
                         data={pieData}
                     />
@@ -177,10 +136,10 @@ export const OnlineChart = ({ items }) => {
                     </Box>
                 </Box>
 
-                <QuarterLabel>{firstQuarter.hour()}</QuarterLabel>
+                <QuarterLabel>{firstQuarter.hour}</QuarterLabel>
             </HStack>
 
-            <QuarterLabel>{secondQuarter.hour()}</QuarterLabel>
+            <QuarterLabel>{secondQuarter.hour}</QuarterLabel>
             <Button
                 position="absolute"
                 alignSelf="flex-end"

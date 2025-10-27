@@ -1,38 +1,14 @@
-import React, { useState } from 'react';
-import { Button } from '@chakra-ui/button';
-import { Box, Flex, Text } from '@chakra-ui/layout';
-import { Textarea } from '@chakra-ui/textarea';
-import { Input } from '@chakra-ui/input';
+import { Box, Button, Flex, HStack, Icon, Input, Text, Textarea, VStack } from '@chakra-ui/react';
+import { useState } from 'react';
+import { FaDonate, FaGithub } from 'react-icons/fa';
 import { CardBox } from '../components/CardBox';
-import { VStack } from '@chakra-ui/react';
-
-const TEMPLATE_ID = process.env.REACT_APP_TEMPLATE_ID || '';
-const SERVICE_ID = process.env.REACT_APP_SERVICE_ID || '';
-const USER_ID = process.env.REACT_APP_USER_ID || '';
-
-const EMAILJS_API = 'https://api.emailjs.com/api/v1.0/email/send';
+import { sendEmail } from '../services/email.service';
 
 const Paragraph = (props) => (
     <Box py={2}>
         <Text fontSize="lg" {...props} />
     </Box>
 );
-
-const sendEmail = (templateParams) => {
-    var data = {
-        service_id: SERVICE_ID,
-        template_id: TEMPLATE_ID,
-        user_id: USER_ID,
-        template_params: { ...templateParams },
-    };
-
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-    };
-    return fetch(EMAILJS_API, requestOptions);
-};
 
 const errToString = (err) => (err.text ? err.text : err.toString());
 
@@ -42,15 +18,18 @@ export function SupportPage() {
     const [emailSent, setEmailSent] = useState(false);
     const [isSending, setIsSending] = useState(false);
     const [email, setEmail] = useState('');
+    const [sendError, setSendError] = useState('');
 
     const changeContent = (e) => {
         const { value } = e.target;
         setContent(value);
+        setSendError('');
     };
 
     const changeEmail = (e) => {
         const { value } = e.target;
         setEmail(value);
+        setSendError('');
     };
 
     const sendForm = async () => {
@@ -61,12 +40,14 @@ export function SupportPage() {
 
         try {
             setIsSending(true);
+            setSendError('');
             await sendEmail({ reply_to: email, message: content });
             setEmailSent(true);
             setContent('');
             setContentError(false);
         } catch (err) {
-            alert('Email send error! ' + errToString(err));
+            console.error('Email send error!', err);
+            setSendError('Email send error! ' + errToString(err));
         }
         setIsSending(false);
     };
@@ -101,6 +82,41 @@ export function SupportPage() {
                         <Text color="green">Email is sent!</Text>
                     </Flex>
                 )}
+                {sendError && (
+                    <Flex pt={5}>
+                        <Text color="red">{sendError}</Text>
+                    </Flex>
+                )}
+            </CardBox>
+
+            <CardBox title="Support Project" width={['100%', '100%', '100%', '100%', '50%']} divider>
+                <VStack spacing={3} alignItems="flex-start">
+                    <Paragraph>
+                        Start supporting this project by starring it on GitHub, contributing code, or making a donation.
+                    </Paragraph>
+
+                    <HStack spacing={5}>
+                        <Button
+                            leftIcon={<Icon as={FaGithub} />}
+                            colorScheme="gray"
+                            onClick={() =>
+                                window.electronBridge?.openUrlInExternalWindow('https://github.com/MayGo/tockler')
+                            }
+                        >
+                            GitHub
+                        </Button>
+
+                        <Button
+                            leftIcon={<Icon as={FaDonate} />}
+                            colorScheme="blue"
+                            onClick={() =>
+                                window.electronBridge?.openUrlInExternalWindow('https://github.com/sponsors/MayGo')
+                            }
+                        >
+                            Donate
+                        </Button>
+                    </HStack>
+                </VStack>
             </CardBox>
         </VStack>
     );

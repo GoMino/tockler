@@ -1,21 +1,21 @@
-// tslint:disable-next-line: no-submodule-imports
-
-import React from 'react';
+import { Button, HStack, Text } from '@chakra-ui/react';
+import { SortingState } from '@tanstack/react-table';
 import { Logger } from '../../logger';
 import { deleteByIds } from '../../services/trackItem.api';
 import { useStoreActions } from '../../store/easyPeasy';
-import { Button } from '@chakra-ui/button';
-import { HStack, Text } from '@chakra-ui/react';
+import { defaultSorting } from './ItemsTable.utils';
+import { TableButtonsProps } from './TrackItemTable.utils';
 
-export const TrackItemTableButtons = ({
-    setAllFilters,
-    setSortBy,
-    selectedFlatRows,
-    selectedRowIds,
-}) => {
-    const fetchTimerange = useStoreActions(actions => actions.fetchTimerange);
+interface Props extends TableButtonsProps {
+    fetchData?: (options: { pageIndex: number; pageSize: number; sortBy: SortingState }) => void;
+}
 
-    const deleteTimelineItems = async ids => {
+export const TrackItemTableButtons: React.FC<Props> = (props) => {
+    const { selectedFlatRows, selectedRowIds, setAllFilters, setSortBy } = props;
+
+    const fetchTimerange = useStoreActions((actions) => actions.fetchTimerange);
+
+    const deleteTimelineItems = async (ids: number[]) => {
         Logger.debug('Delete timeline items', ids);
 
         if (ids) {
@@ -45,18 +45,18 @@ export const TrackItemTableButtons = ({
                 </Button>
             )}
 
-            <Button variant="outline" onClick={() => setAllFilters([])}>
+            <Button variant="outline" onClick={() => setAllFilters()}>
                 Clear filters
             </Button>
 
             <Button
                 variant="outline"
                 onClick={() => {
-                    setSortBy([]);
-                    setAllFilters([]);
+                    setSortBy(defaultSorting);
+                    setAllFilters();
                 }}
             >
-                Clear filters and sorters
+                Reset to defaults
             </Button>
         </HStack>
     );

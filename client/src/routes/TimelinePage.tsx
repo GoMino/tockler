@@ -1,5 +1,5 @@
 import { Box, Flex, Stack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { CardBox } from '../components/CardBox';
 import { AppUsageChart } from '../components/PieCharts/AppUsageChart';
 import { MetricTiles } from '../components/PieCharts/MetricTiles';
@@ -12,7 +12,7 @@ import { TrackItemTabs } from '../components/TrackItemTable/TrackItemTabs';
 import { useInterval } from '../hooks/intervalHook';
 import { useStoreActions } from '../store/easyPeasy';
 
-const BG_SYNC_DELAY_MS = 10000;
+const BG_SYNC_DELAY_MS = 5000;
 
 const ItemLabel = (props) => <Text fontSize="md" color={useColorModeValue('gray.700', 'gray.300')} {...props} />;
 
@@ -20,16 +20,20 @@ export function TimelinePage() {
     const fetchTimerange = useStoreActions((actions) => actions.fetchTimerange);
     const bgSyncInterval = useStoreActions((actions) => actions.bgSyncInterval);
 
-    useInterval(() => {
-        bgSyncInterval();
-    }, [BG_SYNC_DELAY_MS]);
+    useInterval(
+        () => {
+            bgSyncInterval();
+        },
+        BG_SYNC_DELAY_MS,
+        true,
+    );
 
     useEffect(() => {
         fetchTimerange();
     }, [fetchTimerange]);
 
     return (
-        <VStack p={4} spacing={4}>
+        <VStack p={4} spacing={4} position="relative">
             <CardBox>
                 <Flex>
                     <Search />

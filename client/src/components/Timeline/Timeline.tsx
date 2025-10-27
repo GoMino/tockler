@@ -1,26 +1,26 @@
-import React, { memo, useRef } from 'react';
-import 'moment-duration-format';
-import { TimelineItemEdit } from './TimelineItemEdit';
-import { useStoreState } from '../../store/easyPeasy';
 import {
+    Box,
     Popover,
     PopoverArrow,
     PopoverBody,
     PopoverContent,
     PopoverTrigger,
-} from '@chakra-ui/popover';
-import { Box } from '@chakra-ui/react';
+    useColorModeValue,
+} from '@chakra-ui/react';
+import { memo, useRef } from 'react';
+import { useStoreState } from '../../store/easyPeasy';
 import { BlackBox } from '../BlackBox';
+import { Loader } from './Loader';
 import { MainTimelineChart } from './MainTimelineChart';
 import { SmallTimelineChart } from './SmallTimelineChart';
-import { Loader } from './Loader';
+import { TimelineItemEdit } from './TimelineItemEdit';
 
 export const Timeline = memo(() => {
-    const popoverTriggerRef = useRef();
+    const popoverTriggerRef = useRef<HTMLDivElement>(null);
 
-    const isLoading = useStoreState(state => state.isLoading);
+    const isLoading = useStoreState((state) => state.isLoading);
 
-    const selectedTimelineItem = useStoreState(state => state.selectedTimelineItem);
+    const selectedTimelineItem = useStoreState((state) => state.selectedTimelineItem);
 
     return (
         <Box flex="1">
@@ -30,9 +30,16 @@ export const Timeline = memo(() => {
                     <MainTimelineChart />
                 </BlackBox>
                 <Popover isOpen={!!selectedTimelineItem}>
-                    <PopoverTrigger>{popoverTriggerRef.current || <div />}</PopoverTrigger>
-                    <PopoverContent p={4} w="fit-content" boxShadow="lg">
-                        <PopoverArrow />
+                    <PopoverTrigger>
+                        <div ref={popoverTriggerRef} />
+                    </PopoverTrigger>
+                    <PopoverContent
+                        p={4}
+                        w="fit-content"
+                        boxShadow="2xl"
+                        bg={useColorModeValue('gray.200', 'gray.700')}
+                    >
+                        <PopoverArrow bg={useColorModeValue('gray.200', 'gray.700')} />
                         <PopoverBody p={0}>
                             <TimelineItemEdit />
                         </PopoverBody>

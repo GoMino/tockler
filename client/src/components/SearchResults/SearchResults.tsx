@@ -1,11 +1,16 @@
 import { IconButton, Tooltip } from '@chakra-ui/react';
-import moment from 'moment';
-import React, { memo } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { DateTime } from 'luxon';
+import { memo } from 'react';
 import { AiOutlineUnorderedList } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 
+import { ITrackItem } from '../../@types/ITrackItem';
+import { SearchResultI } from '../../services/trackItem.api';
 import { useStoreActions } from '../../store/easyPeasy';
 import { ItemsTable } from '../TrackItemTable/ItemsTable';
+import { defaultTableButtonsProps } from '../TrackItemTable/TrackItemTable.utils';
+import { SearchDeleteButtons } from './SearchDeleteButtons';
 
 const ActionCell = ({ cell }) => {
     const { beginDate, endDate } = cell.row.original;
@@ -16,12 +21,13 @@ const ActionCell = ({ cell }) => {
     const navigate = useNavigate();
 
     const goToTimelinePage = (record) => {
-        loadTimerange([moment(record.beginDate).startOf('day'), moment(record.beginDate).endOf('day')]);
+        const beginDateTime = DateTime.fromMillis(record.beginDate);
+        loadTimerange([beginDateTime.startOf('day'), beginDateTime.endOf('day')]);
         setVisibleTimerange([
-            moment(record.beginDate).subtract(15, 'minutes'),
-            moment(record.endDate).add(15, 'minutes'),
+            DateTime.fromMillis(record.beginDate).minus({ minutes: 15 }),
+            DateTime.fromMillis(record.endDate).plus({ minutes: 15 }),
         ]);
-        navigate('/timeline');
+        navigate('/app/timeline');
     };
 
     return (
@@ -36,29 +42,46 @@ const ActionCell = ({ cell }) => {
     );
 };
 
-const extraColumns = [
+const extraColumns: ColumnDef<ITrackItem>[] = [
     {
-        Cell: ActionCell,
         id: 'actions',
-        accessor: 'title',
-        width: 20,
-        minWidth: 20,
-        maxWidth: 20,
+        header: '',
+        enableColumnFilter: false,
+        cell: ActionCell,
+        size: 20,
+        minSize: 20,
+        maxSize: 20,
     },
 ];
 
-const SearchResultsPlain = ({ searchResult, fetchData, pageIndex, total }) => {
+interface SearchResultsProps {
+    searchResult: SearchResultI;
+    fetchData: (params: { pageSize: number; pageIndex: number; sortBy: { id: string; desc: boolean }[] }) => void;
+    pageIndex: number;
+    resetButtonsRef: React.RefObject<HTMLDivElement>;
+    refreshData: () => void;
+}
+
+const SearchResultsPlain = ({
+    searchResult,
+    fetchData,
+    pageIndex,
+    resetButtonsRef,
+    refreshData,
+}: SearchResultsProps) => {
     return (
         <ItemsTable
-            data={searchResult.results || []}
+            data={searchResult.data || []}
             isOneDay={false}
             isSearchTable
             fetchData={fetchData}
             pageCount={searchResult.total}
             pageIndex={pageIndex}
             extraColumns={extraColumns}
-            total={total}
+            sumTotal={searchResult.totalDuration || 0}
             manualSortBy
+            resetButtonsRef={resetButtonsRef}
+            customTableButtons={<SearchDeleteButtons refreshData={refreshData} {...defaultTableButtonsProps} />}
         />
     );
 };

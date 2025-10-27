@@ -1,19 +1,21 @@
-import React, { useEffect, useCallback } from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { RootProvider } from './RootContext';
-import { MainAppPage } from './routes/MainAppPage';
-import { TrayAppPage } from './routes/TrayAppPage';
-import moment from 'moment';
-import 'moment/min/locales';
-import { EventEmitter } from './services/EventEmitter';
-import { Logger } from './logger';
-import { ChartThemeProvider } from './routes/ChartThemeProvider';
-import { useGoogleAnalytics } from './useGoogleAnalytics';
 import { useColorMode } from '@chakra-ui/react';
-import { TrayPage } from './routes/TrayPage';
+import { StoreProvider } from 'easy-peasy';
+import { Settings } from 'luxon';
+import { useCallback, useEffect } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
+import { TrayLayout } from './components/TrayLayout/TrayLayout';
+import { Logger } from './logger';
+import { RootProvider } from './RootContext';
+import { ChartThemeProvider } from './routes/ChartThemeProvider';
+import { MainAppPage } from './routes/MainAppPage';
 import { NotificationAppPage } from './routes/NotificationAppPage';
+import { TrayAppPage } from './routes/TrayAppPage';
+import { ElectronEventEmitter } from './services/ElectronEventEmitter';
+import { mainStore } from './store/mainStore';
+import { useGoogleAnalytics } from './useGoogleAnalytics';
 
-moment.locale('en-gb');
+Settings.defaultLocale = 'en-GB';
 
 export function MainRouter() {
     useGoogleAnalytics();
@@ -27,23 +29,47 @@ export function MainRouter() {
     );
 
     useEffect(() => {
-        EventEmitter.on('activeThemeChanged', changeActiveTheme);
+        ElectronEventEmitter.on('activeThemeChanged', changeActiveTheme);
 
         return () => {
             Logger.debug('Clearing eventEmitter');
-            EventEmitter.off('activeThemeChanged', changeActiveTheme);
+            ElectronEventEmitter.off('activeThemeChanged', changeActiveTheme);
         };
-    }, [changeActiveTheme]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [changeActiveTheme]);
 
     return (
         <ChartThemeProvider>
             <RootProvider>
                 <Routes>
-                    <Route path="*" element={<MainAppPage />} />
+                    {/* Main App with main store */}
+                    <Route
+                        path="/app/*"
+                        element={
+                            <StoreProvider store={mainStore}>
+                                <MainAppPage />
+                            </StoreProvider>
+                        }
+                    />
 
-                    <Route path="/trayApp" element={<TrayAppPage />} />
+                    {/* Redirect from root to /app */}
+                    <Route path="/" element={<Navigate to="/app" replace />} />
+
+                    {/* Tray App - No longer needs trayStore */}
+                    <Route
+                        path="/trayApp"
+                        element={
+                            <TrayLayout>
+                                <ErrorBoundary>
+                                    <TrayAppPage />
+                                </ErrorBoundary>
+                            </TrayLayout>
+                        }
+                    />
+
                     <Route path="/notificationApp" element={<NotificationAppPage />} />
-                    <Route path="/trayPage" element={<TrayPage />} />
+
+                    {/* Fallback redirect to /app */}
+                    <Route path="*" element={<Navigate to="/app" replace />} />
                 </Routes>
             </RootProvider>
         </ChartThemeProvider>

@@ -6,20 +6,13 @@ asarUnpack:
     - shared
 
 npmRebuild: false
-afterSign: './scripts/notarize.js'
 
 directories:
     output: 'packaged'
 files:
-    - '!__tests__'
-    - '!__e2e__'
-    - '!__mocks__'
-    - '!app'
-    - '!custom_typings'
-    - '!util'
-    - '!test'
-    - '!release'
-    - '!travis_wait*'
+    - 'dist-electron/**/*'
+    - 'package.json'
+    - 'shared/**/*'
 
 publish:
     - github
@@ -37,9 +30,11 @@ mac:
     extendInfo:
         LSUIElement: 1
         NSAppleEventsUsageDescription: 'Please allow access to script browser applications to detect the current URL when triggering instant lookup.'
+    compression: 'maximum'
+    electronLanguages: ['en']
     target:
-        - dmg
-        - zip
+        - target: dmg
+        - target: zip
 
 mas:
     entitlements: './build/entitlements.mas.plist'
@@ -87,6 +82,7 @@ snap:
 
 dmg:
     sign: false
+    # writeUpdateInfo: false
 protocols:
     name: Faktions
     schemes:

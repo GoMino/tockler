@@ -1,19 +1,21 @@
-import { FormControl, FormLabel } from '@chakra-ui/form-control';
-import { Text } from '@chakra-ui/layout';
-import { Switch } from '@chakra-ui/switch';
-import React from 'react';
+import { FormControl, FormLabel, Switch, Text } from '@chakra-ui/react';
+import { ChangeEvent } from 'react';
+
 import {
-    getOpenAtLogin,
     getIsAutoUpdateEnabled,
-    saveOpenAtLogin,
-    saveIsAutoUpdateEnabled,
     getIsLoggingEnabled,
-    saveIsLoggingEnabled,
+    getMacAutoHideMenuBarEnabled,
     getNativeThemeChange,
-    saveNativeThemeChange,
+    getOpenAtLogin,
     getUsePurpleTrayIcon,
+    saveIsAutoUpdateEnabled,
+    saveIsLoggingEnabled,
+    saveMacAutoHideMenuBarEnabled,
+    saveNativeThemeChange,
+    saveOpenAtLogin,
     saveUsePurpleTrayIcon,
 } from '../../services/settings.api';
+import '../../types/electron-bridge';
 import { CardBox } from '../CardBox';
 
 export const AppForm = () => {
@@ -22,26 +24,29 @@ export const AppForm = () => {
     const isAutoUpdateEnabled = getIsAutoUpdateEnabled();
     const isLoggingEnabled = getIsLoggingEnabled();
     const usePurpleTrayIcon = getUsePurpleTrayIcon();
-
-    const onChangeNativeThemeChange = event => {
+    const macAutoHideMenuBarEnabled = getMacAutoHideMenuBarEnabled();
+    const onChangeNativeThemeChange = (event: ChangeEvent<HTMLInputElement>) => {
         saveNativeThemeChange(event.target.checked);
     };
-    const onChangeOpenAtLogin = event => {
+    const onChangeOpenAtLogin = (event: ChangeEvent<HTMLInputElement>) => {
         saveOpenAtLogin(event.target.checked);
     };
 
-    const onChangeAutoUpdate = event => {
+    const onChangeAutoUpdate = (event: ChangeEvent<HTMLInputElement>) => {
         saveIsAutoUpdateEnabled(event.target.checked);
     };
-    const onChangeLogging = event => {
+    const onChangeLogging = (event: ChangeEvent<HTMLInputElement>) => {
         saveIsLoggingEnabled(event.target.checked);
     };
-    const onChangeUsePurpleTrayIcon = event => {
+    const onChangeUsePurpleTrayIcon = (event: ChangeEvent<HTMLInputElement>) => {
         saveUsePurpleTrayIcon(event.target.checked);
     };
+    const onChangeMacAutoHideMenuBarEnabled = (event: ChangeEvent<HTMLInputElement>) => {
+        saveMacAutoHideMenuBarEnabled(event.target.checked);
+    };
 
-    const appName = process.env.REACT_APP_NAME;
-    const platform = (window as any).electronBridge.platform;
+    const appName = import.meta.env.VITE_NAME;
+    const platform = window.electronBridge.platform;
 
     const linuxPath = `~/.config/${appName}/logs/main.log`;
     const macOSPath = `~/Library/Logs/${appName}/main.log`;
@@ -100,9 +105,27 @@ export const AppForm = () => {
                 </FormLabel>
                 <Switch id="enable-logging" defaultChecked={isLoggingEnabled} onChange={onChangeLogging} size="lg" />
             </FormControl>
-            <Text fontSize="xs" color="gray.500" pt={2}>
+            <Text fontSize="xs" color="gray.500" pt={1}>
                 Log path: {logPath}
             </Text>
+            {window.electronBridge.platform === 'darwin' && (
+                <>
+                    <FormControl display="flex" alignItems="center" py={2}>
+                        <FormLabel htmlFor="macAutoHideMenuBarEnabled" mb="0" flex="1">
+                            Enable tray positioning for auto-hide menu bar
+                        </FormLabel>
+                        <Switch
+                            id="macAutoHideMenuBarEnabled"
+                            defaultChecked={macAutoHideMenuBarEnabled}
+                            onChange={onChangeMacAutoHideMenuBarEnabled}
+                            size="lg"
+                        />
+                    </FormControl>
+                    <Text fontSize="xs" color="gray.500" pt={1}>
+                        Enable this if you use "Automatically hide and show the menu bar" in macOS settings
+                    </Text>
+                </>
+            )}
         </CardBox>
     );
 };

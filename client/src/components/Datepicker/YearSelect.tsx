@@ -1,6 +1,5 @@
-import { Select } from '@chakra-ui/select';
+import { Select } from '@chakra-ui/react';
 import { range } from 'lodash';
-import React from 'react';
 
 export const YearSelect = ({ value, onChange }) => {
     var currentYear = new Date().getFullYear();
@@ -8,7 +7,7 @@ export const YearSelect = ({ value, onChange }) => {
 
     return (
         <Select placeholder="Select year" value={value} onChange={onChange}>
-            {years.map(year => (
+            {years.map((year) => (
                 <option key={year} value={year}>
                     {year}
                 </option>

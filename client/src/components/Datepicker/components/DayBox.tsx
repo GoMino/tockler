@@ -1,14 +1,14 @@
-import React from 'react';
 import { Box, Text } from '@chakra-ui/react';
 import { isEndDate, isStartDate, useDay } from '@datepicker-react/hooks';
+import { DateTime } from 'luxon';
 import { useDatepickerContext } from '../context/DatepickerContext';
 import { DayWrapper } from './DayWrapper';
 
 interface DayProps {
     day: string;
     date: Date;
-    children: any;
-    onDateClicked: any;
+    children: React.ReactNode;
+    onDateClicked: (date: DateTime) => void;
 }
 
 function getVariant({ isSelected, isWithinHoverRange, isFirst, isLast }) {
@@ -48,14 +48,7 @@ export function DayBox({ day, date, onDateClicked, children }: DayProps) {
         onDateHover,
     });
 
-    const {
-        onKeyDown,
-        onMouseEnter,
-        tabIndex,
-        isSelected,
-        isWithinHoverRange,
-        disabledDate,
-    } = dayProps;
+    const { onKeyDown, onMouseEnter, tabIndex, isSelected, isWithinHoverRange, disabledDate } = dayProps;
 
     const isFirst = isStartDate(date, startDate);
     const isLast = isEndDate(date, endDate);
@@ -70,7 +63,7 @@ export function DayBox({ day, date, onDateClicked, children }: DayProps) {
     return (
         <DayWrapper
             variant={variant}
-            onClick={() => onDateClicked(date)}
+            onClick={() => onDateClicked(DateTime.fromJSDate(date))}
             onKeyDown={onKeyDown}
             onMouseEnter={onMouseEnter}
             tabIndex={tabIndex}

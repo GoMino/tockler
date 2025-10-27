@@ -1,26 +1,27 @@
-import React, { memo } from 'react';
-import { filterItems } from '../Timeline/timeline.utils';
 import _ from 'lodash';
-import { useStoreState } from '../../store/easyPeasy';
-import { VictoryBar, VictoryLabel, VictoryStack } from 'victory';
-import useDimensions from 'react-cool-dimensions';
-import { BAR_WIDTH } from '../Timeline/timeline.constants';
-import { sumAppObject } from './MetricTiles.utils';
+import { memo } from 'react';
 
-import moment from 'moment';
+import { useMeasure } from '@uidotdev/usehooks';
+import { VictoryBar, VictoryLabel, VictoryStack, VictoryStyleInterface } from 'victory';
+import { useStoreState } from '../../store/easyPeasy';
+import { BAR_WIDTH } from '../Timeline/timeline.constants';
+import { filterItems } from '../Timeline/timeline.utils';
+import { sumAppObject, SumItem } from './MetricTiles.utils';
+
+import { TrackItemType } from '../../enum/TrackItemType';
 import { useChartThemeState } from '../../routes/ChartThemeProvider';
+import { formatDurationInternal } from '../../utils';
 import { BarWithTooltip } from '../Timeline/BarWithTooltip';
 import { colorProp } from '../charts.utils';
-import { secondsToClock } from '../../time.util';
 import { getTextWidth } from './AppUsageChart.utils';
 
 export const AppUsageChart = memo(() => {
-    const { observe, width } = useDimensions();
+    const [ref, { width }] = useMeasure();
     const { chartTheme } = useChartThemeState();
     const timeItems = useStoreState((state) => state.timeItems);
     const visibleTimerange = useStoreState((state) => state.visibleTimerange);
 
-    const appItems = filterItems(timeItems.appItems, visibleTimerange);
+    const appItems = filterItems(timeItems[TrackItemType.AppTrackItem] || [], visibleTimerange);
 
     const groupByField = 'app';
 
@@ -32,19 +33,17 @@ export const AppUsageChart = memo(() => {
                 title: b[0].title,
                 timeDiffInMs: 0,
                 color: b[0].color,
-            });
+            } as SumItem);
         })
         .sortBy('timeDiffInMs')
         .reverse()
         .valueOf();
 
     const getTooltipLabel = (datum) => {
-        const dur = moment.duration(datum.timeDiffInMs).asSeconds();
-
-        return `${datum[groupByField]}\r\n${secondsToClock(dur)}`;
+        return `${datum[groupByField]}\r\n${formatDurationInternal(datum.timeDiffInMs)}`;
     };
 
-    const style: any = {
+    const style: VictoryStyleInterface = {
         data: {
             fill: colorProp,
             stroke: colorProp,
@@ -53,10 +52,10 @@ export const AppUsageChart = memo(() => {
         },
     };
 
-    const labelPadding = 10;
+    const labelPadding = 25;
     return (
-        <div ref={observe}>
-            <VictoryStack height={BAR_WIDTH} padding={0} width={width} horizontal>
+        <div ref={ref}>
+            <VictoryStack height={BAR_WIDTH} padding={0} width={width ?? 0} horizontal>
                 {data.map((item) => (
                     <VictoryBar
                         key={item.app}
@@ -71,9 +70,7 @@ export const AppUsageChart = memo(() => {
                                 verticalAnchor="end"
                                 textAnchor="end"
                                 text={({ datum, scale }) => {
-                                    const dur = moment.duration(datum.timeDiffInMs).asSeconds();
-
-                                    const text = `${datum.app} - ${secondsToClock(dur)}`;
+                                    const text = `${datum.app} - ${formatDurationInternal(datum.timeDiffInMs)}`;
                                     const textWidth = getTextWidth(
                                         text,
                                         14,
@@ -81,9 +78,14 @@ export const AppUsageChart = memo(() => {
                                     );
 
                                     const timeDiff = datum._y1 - datum._y0;
-                                    const width = scale?.y ? scale.y(timeDiff) : 0;
+
+                                    const width =
+                                        typeof scale === 'object' && typeof scale.y === 'function'
+                                            ? scale.y(timeDiff)
+                                            : 0;
+
                                     const canFit = textWidth + labelPadding * 2 < width;
-                                    // @ts-ignore
+
                                     return canFit ? text : '';
                                 }}
                                 dx={-labelPadding}

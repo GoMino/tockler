@@ -1,55 +1,36 @@
-import { VStack } from '@chakra-ui/layout';
-import { StackDivider } from '@chakra-ui/react';
-import { groupBy, map, orderBy, sortBy, sumBy } from 'lodash';
-import React, { memo } from 'react';
-import { convertDate } from '../../constants';
-import { Loader } from '../Timeline/Loader';
+import { StackDivider, VStack } from '@chakra-ui/react';
+import { memo } from 'react';
 
+import { orderBy } from 'lodash';
+import { ITrackItem } from '../../@types/ITrackItem';
 import { TrayListItem } from './TrayListItem';
 
-const sumDiff = data =>
-    sumBy(data, (c: any) => convertDate(c.endDate).diff(convertDate(c.beginDate)));
+export interface AggregatedTrackItem extends ITrackItem {
+    totalDuration: number;
+}
 
-const aggregateSameAppAndName = (lastLogItems, runningLogItem) => {
-    const grouped = groupBy(lastLogItems, item => `${item.app}_${item.title}`);
-
-    const mapped = map(grouped, items => {
-        return {
-            app: items[0].app,
-            title: items[0].title,
-            color: items[0].color,
-            isRunning: runningLogItem ? !!items.find(item => item.id === runningLogItem.id) : false,
-            beginDate: sortBy(items, ['beginDate'])[0].beginDate,
-            endDate: sortBy(items, ['endDate'])[items.length - 1].endDate,
-            totalMs: sumDiff(items),
-        };
-    });
-
-    return mapped;
-};
+const getKey = (item: ITrackItem) => `${item.app}_${item.title}`;
 
 export function TrayListPlain({
     lastLogItems,
-    loading,
     runningLogItem,
     stopRunningLogItem,
     startNewLogItem,
-}: any) {
-    const aggrItems = aggregateSameAppAndName(lastLogItems, runningLogItem);
-    let items = orderBy(aggrItems, ['isRunning', 'endDate'], ['desc', 'desc']);
+}: {
+    lastLogItems: AggregatedTrackItem[];
+    runningLogItem: ITrackItem | undefined;
+    stopRunningLogItem: () => void;
+    startNewLogItem: (item: AggregatedTrackItem) => void;
+}) {
+    const items: AggregatedTrackItem[] = orderBy(lastLogItems, ['endDate'], ['desc']);
 
     return (
-        <VStack
-            spacing={1}
-            align="stretch"
-            divider={<StackDivider borderColor="gray.200" />}
-            position="relative"
-        >
-            {loading && <Loader />}
-            {items.map(item => (
+        <VStack spacing={1} align="stretch" divider={<StackDivider borderColor="gray.200" />} position="relative">
+            {items.map((item, index) => (
                 <TrayListItem
-                    key={item.title}
+                    key={index}
                     item={item}
+                    isRunning={runningLogItem ? getKey(item) === getKey(runningLogItem) : false}
                     startNewLogItemFromOld={startNewLogItem}
                     stopRunningLogItem={stopRunningLogItem}
                 />
@@ -57,7 +38,5 @@ export function TrayListPlain({
         </VStack>
     );
 }
-
-TrayListPlain.whyDidYouRender = true;
 
 export const TrayList = memo(TrayListPlain);

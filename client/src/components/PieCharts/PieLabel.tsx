@@ -1,4 +1,4 @@
-import React from 'react';
+import { PureComponent } from 'react';
 import { VictoryTooltip } from 'victory';
 import { gray900 } from '../Timeline/ChartTheme';
 
@@ -7,11 +7,11 @@ interface IProps {
     width: number;
     innerWidth: number;
     color?: string;
-    datum?: any;
-    theme: any;
+    datum?: { beginDate: number; endDate: number; diff: number };
+    theme: { tooltip: { style: { fontSize: number } }; isDark: boolean };
 }
 
-export class PieLabel extends React.PureComponent<IProps> {
+export class PieLabel extends PureComponent<IProps> {
     public static defaultEvents = VictoryTooltip.defaultEvents;
 
     public render() {

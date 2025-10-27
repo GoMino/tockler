@@ -1,10 +1,15 @@
-import { stringify } from 'querystring';
 import { getMachineId } from './services/settings.api';
 
-const trackingId: string = process.env.REACT_APP_TRACKING_ID || '';
-const secretKey: string = process.env.REACT_APP_SECRET_KEY || '';
+const trackingId: string = import.meta.env.VITE_TRACKING_ID || '';
+const secretKey: string = import.meta.env.VITE_SECRET_KEY || '';
 
-const config = {
+const config: {
+    measurementId: string;
+    measurementSecret: string;
+    measurementUrl: string;
+    measurementUrlDebug: string;
+    clientId: string | null;
+} = {
     measurementId: trackingId,
     measurementSecret: secretKey,
 
@@ -13,13 +18,13 @@ const config = {
     clientId: null,
 };
 
-const getUrl = () =>
-    new URL(
-        `${config.measurementUrl}?${stringify({
-            measurement_id: config.measurementId,
-            api_secret: config.measurementSecret,
-        })}`,
-    );
+const getUrl = () => {
+    const params = new URLSearchParams({
+        measurement_id: config.measurementId,
+        api_secret: config.measurementSecret,
+    });
+    return new URL(`${config.measurementUrl}?${params}`);
+};
 
 /**
  * Tracks an analytics event via measurement protocol,
@@ -36,10 +41,11 @@ export const sendEvent = async ({ name, params }: { name: string; params }) => {
 
     if (!config.clientId) {
         const machineId = await getMachineId();
-        config.clientId = machineId;
+        config.clientId = machineId as string;
     }
 
-    return fetch(url, {
+    return fetch(url.toString(), {
+        // Ensure url is a string
         method: 'POST',
         body: JSON.stringify({
             client_id: config.clientId,
@@ -60,7 +66,7 @@ export const setUserProperty = async (name, value) => {
 
     if (!config.clientId) {
         const machineId = await getMachineId();
-        config.clientId = machineId;
+        config.clientId = machineId as string;
     }
 
     return fetch(url, {

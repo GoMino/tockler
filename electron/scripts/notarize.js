@@ -1,40 +1,47 @@
 require('dotenv').config();
 const { notarize } = require('@electron/notarize');
+const { join } = require('path');
+const { existsSync } = require('fs');
 
-exports.default = async function notarizing(context) {
-    const { electronPlatformName, appOutDir, outDir, packager } = context;
+exports.default = async function notarizing(params) {
+    const { electronPlatformName } = params;
+    const { appId } = params.packager.appInfo;
 
-    // Don't notarize on pull requests
-    if (
-        process.env.GITHUB_EVENT_NAME == 'pull_request' ||
-        process.env.TRAVIS_EVENT_TYPE == 'pull_request' ||
-        process.env.APPVEYOR_PULL_REQUEST_NUMBER > 0
-    ) {
+    // Skip notarization for pull requests and non-macOS builds
+    if (process.env.GITHUB_EVENT_NAME === 'pull_request' || electronPlatformName !== 'darwin') {
         return;
     }
 
-    if (electronPlatformName !== 'darwin') {
+    // Skip for local builds
+    if (params.packager.config.extraMetadata?.irccloud?.local_build) {
         return;
     }
 
-    if (
-        packager.config.extraMetadata &&
-        packager.config.extraMetadata.irccloud &&
-        packager.config.extraMetadata.irccloud.local_build
-    ) {
-        return;
+    const appPath = join(params.appOutDir, `${params.packager.appInfo.productFilename}.app`);
+    console.log('App Path:', appPath);
+    console.log('appId', appId);
+    if (!existsSync(appPath)) {
+        throw new Error(`Cannot find application at: ${appPath}`);
     }
 
-    const appName = packager.appInfo.productFilename;
-    const appPath = `${appOutDir}/${appName}.app`;
-    const appBundleId = packager.config.appId;
-
-    console.info('notarizing', { appBundleId: appBundleId, appPath: appPath });
-
-    return await notarize({
-        appBundleId: appBundleId,
+    console.info('Notarizing application...', {
+        appBundleId: appId,
         appPath: appPath,
-        appleId: process.env.APPLEID,
-        appleIdPassword: process.env.APPLEIDPASS,
+        teamId: process.env.APPLE_TEAM_ID,
     });
+
+    try {
+        await notarize({
+            tool: 'notarytool',
+            appPath,
+            teamId: process.env.APPLE_TEAM_ID,
+            appleId: process.env.APPLE_ID,
+            appleIdPassword: process.env.APPLE_ID_PASSWORD,
+        });
+
+        console.info('Notarization completed successfully');
+    } catch (error) {
+        console.error('Notarization failed:', error);
+        throw error;
+    }
 };

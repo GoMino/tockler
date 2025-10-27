@@ -8,70 +8,118 @@
 </p>
 
 <p align="center">
- <a  href="https://trimatechdesigns.etsy.com/">Support Tockler by visiting my Etsy Store</a>
-</p>
-
-**Automatically track applications usage and working time.**
-
-> With Tockler you can go back in time and see what you were working on. You can get information on what apps were used - exactly at what time - and what title the application had at that moment. This is enough to determine how much you did something.
-
-**Track how you spent your time on a computer.**
-
-> Tockler tracks active applications usage and computer state. It records active application titles. It tracks idle, offline, and online state. You can see this data with a nice interactive timeline chart.
-
-**Analyze your computer usage**
-
-> See you total online time today, yesterday, or any other day. In monthly calendar views and with charts.
-
-<br/>
-<p align="center">
- <a href="https://github.com/MayGo/tockler/releases/latest">
+  <a href="https://github.com/MayGo/tockler/releases/latest">
     <img src="https://img.shields.io/github/v/release/MayGo/tockler" alt="Release" />
   </a>
-    <a href="https://github.com/MayGo/tockler/releases">
+  <a href="https://github.com/MayGo/tockler/releases">
     <img src="https://img.shields.io/github/downloads/maygo/tockler/total" alt="Total downloads" />
   </a>
-   <a href="https://github.com/MayGo/tockler/releases/latest">
+  <a href="https://github.com/MayGo/tockler/releases/latest">
     <img src="https://img.shields.io/github/downloads/maygo/tockler/latest/total" alt="Latest downloads" />
   </a>
 </p>
-<br/>
 
-<!-- DONATELINKS -->
-<p align="center">Tockler needs <b>YOUR</b> support. Currently, every expense is coming from my pocket. And this project has <b>Zero</b> backers<br/>It would be awesome if this project would keep itself alive from donations.
+## Overview
 
- </p>
+Tockler is a free application that automatically tracks your computer usage and working time. It provides detailed insights into:
 
-<p align="center">
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JAHHBZZCZVDMA">
-    <img src="https://github.com/MayGo/tockler/raw/master/badges/Donate-PayPal-green.svg" alt="Donate using PayPal" />
-  </a>
-    <a href="https://github.com/sponsors/maygo/">
-    <img src="https://github.com/MayGo/tockler/raw/master/badges/GitHub-Badge.svg" alt="Sponsor on GitHub" />
-  </a>
-   <a href="https://www.patreon.com/Tockler">
-    <img src="https://github.com/MayGo/tockler/raw/master/badges/Patreon-Badge.svg" alt="Become a patron" />
-  </a>
-</p>
-<!-- DONATELINKS END  -->
-<br/>
-<p align="center">
-<a href="https://www.producthunt.com/posts/tockler?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-tockler" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=304890&theme=light" alt="Tockler - Automatically track applications usage and working time. | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-</p>
+-   Application usage and window titles
+-   Computer state (idle, offline, online)
+-   Interactive timeline visualization
+-   Daily, weekly, and monthly usage statistics
+-   Calendar views and charts
 
-<br/>
+## Features
+
+-   **Time Tracking**: Go back in time and see what you were working on
+-   **Application Monitoring**: Track which apps were used and their window titles
+-   **Usage Analytics**: View total online time, application usage patterns, and trends
+-   **Interactive Timeline**: Visualize your computer usage with an interactive chart
+-   **Cross-Platform**: Available for Windows, macOS, and Linux
+
+## Support Tockler
+
+Tockler is free and open-source software. If you find it useful, please consider supporting its development:
 
 <p align="center">
-    <a href='https://github.com/MayGo/tockler/releases/download/v3.21.12/tockler-3.21.12-setup-win.exe'><img alt='Get it on Windows' width="134px" src='https://github.com/MayGo/tockler/raw/master/badges/BadgeWindows.png'/></a>
-    <a href='https://github.com/MayGo/tockler/releases/download/v3.21.12/Tockler-3.21.12.dmg'><img alt='Get it on macOS' width="134px" src='https://github.com/MayGo/tockler/raw/master/badges/BadgeMacOS.png'/></a>
-    <a href='https://github.com/MayGo/tockler/releases/download/v3.21.12/Tockler-3.21.12.AppImage'><img alt='Get it on Linux' width="134px" src='https://github.com/MayGo/tockler/raw/master/badges/BadgeLinux.png'/></a>
+  <a href="https://github.com/sponsors/maygo/">
+    <img src="https://img.shields.io/github/sponsors/maygo?style=for-the-badge&logo=github&logoColor=white&color=ea4aaa" alt="Sponsor on GitHub" />
+  </a>
+  <a href="https://opencollective.com/tockler">
+    <img src="https://img.shields.io/badge/Open%20Collective-Support-7FADF2?style=for-the-badge&logo=opencollective&logoColor=white" alt="Support on Open Collective" />
+  </a>
+  <a href="https://www.patreon.com/Tockler">
+    <img src="https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Support on Patreon" />
+  </a>
+  <a href="https://ko-fi.com/maigoerit">
+    <img src="https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi" />
+  </a>
+  <a href="https://paypal.me/maigoerit">
+    <img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="Donate via PayPal" />
+  </a>
 </p>
 
-<p align="center">Tockler is <b>free</b> to download and use.</p>
+## Download
 
-<br/>
+<p align="center">
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/All%20Versions-Release%20History-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="View all releases" />
+  </a>
+</p>
 
-<h3 align="center">Light theme</h3>
+### Windows
+
+<p align="center">
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%20Universal%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Universal Setup" />
+  </a>
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%20x64%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows x64 Setup" />
+  </a>
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%20ARM64%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows ARM64 Setup" />
+  </a>
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%2032--bit%20Setup-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows 32-bit Setup" />
+  </a>
+</p>
+<p align="center">
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%20Universal%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Universal Portable" />
+  </a>
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%20x64%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows x64 Portable" />
+  </a>
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%20ARM64%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows ARM64 Portable" />
+  </a>
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Windows%2032--bit%20Portable-Download-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows 32-bit Portable" />
+  </a>
+</p>
+
+### macOS
+
+<p align="center">
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/macOS%20Universal%20(DMG)-Download-999999?style=for-the-badge&logo=apple&logoColor=white" alt="Download macOS Universal DMG" />
+  </a>
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/macOS%20Apple%20Silicon%20(DMG)-Download-999999?style=for-the-badge&logo=apple&logoColor=white" alt="Download macOS Apple Silicon DMG" />
+  </a>
+</p>
+
+### Linux
+
+<p align="center">
+  <a href='https://github.com/MayGo/tockler/releases/latest'>
+    <img src="https://img.shields.io/badge/Linux%20AppImage-Download-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download Linux AppImage" />
+  </a>
+</p>
+
+## Screenshots
+
+### Light Theme
 
 ![Timeline](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-timeline.png 'Timeline')
 ![Settings](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-settings.png 'Settings')
@@ -80,7 +128,7 @@
 ![Search](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-search.png 'Search')
 ![Tray window](https://github.com/MayGo/tockler/raw/master/screenshots/light/tockler-tray.png 'Tray window')
 
-<h3 align="center">Dark theme</h3>
+### Dark Theme
 
 ![Timeline](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-timeline.png 'Timeline')
 ![Settings](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-settings.png 'Settings')
@@ -89,94 +137,76 @@
 ![Search](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-search.png 'Search')
 ![Tray window](https://github.com/MayGo/tockler/raw/master/screenshots/dark/tockler-tray.png 'Tray window')
 
-Theme by StyleStack.com
+## Technologies
 
-# Feedback
+Tockler is built with modern web technologies:
 
-Feel free to make feature requests by creating a issue and 'Star' this project.
-
-# Made with
-
--   [Electron](https://electron.atom.io/) with [Webpack](https://webpack.github.io/) and [Typescript](https://www.typescriptlang.org/)
--   [React](https://reactjs.org/)
--   [D3 v4](https://d3js.org/) and [Victory Chart](http://formidable.com/open-source/victory/docs/victory-chart/)
--   [Chakra UI](https://chakra-ui.com/)
-
-## Logs
-
-By default, tockler writes logs to the following locations:
-
-Linux: `~/.config/tockler/logs/main.log`
-
-macOS: `~/Library/Logs/tockler/main.log`
-
-Windows: `%USERPROFILE%\AppData\Roaming\tockler\logs\main.log`
+-   **Framework**: [Electron](https://electron.atom.io/) with [Webpack](https://webpack.github.io/) and [TypeScript](https://www.typescriptlang.org/)
+-   **Frontend**: [React](https://reactjs.org/) with [Chakra UI](https://chakra-ui.com/)
+-   **Data Visualization**: [D3.js](https://d3js.org/) and [Victory Chart](http://formidable.com/open-source/victory/docs/victory-chart/)
+-   **Package Manager**: [pnpm](https://pnpm.io/)
 
 ## Development
 
+### Prerequisites
+
+-   Node.js
+-   Git
+-   pnpm
+
 ### Quick Start
 
-> Prerequisites: [Node](https://nodejs.org/), [Git](https://git-scm.com/).
+1. Clone the repository:
 
 ```bash
-git clone https://github.com/Maygo/tockler.git  # Download this project
-
-npm install yarn -g     # install yarn or binary from https://yarnpkg.com
+git clone https://github.com/Maygo/tockler.git
+cd tockler
 ```
 
-### Start application
+2. Enable pnpm:
 
-Renderer and main process builds have been separated. It's easier to boilerplate this project and switch client framework.
-
-#### React client (renderer)
-
+```bash
+corepack enable pnpm
 ```
+
+3. Install dependencies and start the application:
+
+For the React client (renderer):
+
+```bash
 cd client/
-yarn install            # Install dependencies
-yarn start
+pnpm install
+pnpm start
 ```
 
-#### Electron (main)
+For the Electron main process:
 
-```
+```bash
 cd electron/
-yarn install            # Install dependencies
-yarn start
+pnpm install
+pnpm start
 ```
 
-Build scripts samples are in travis/appveyor files.
+### Logs
 
-### Testing MAS build
+Logs are stored in the following locations:
 
-In electron-builder.yml replace
-type: development
-provisioningProfile: development.provisionprofile
+-   Linux: `~/.config/tockler/logs/main.log`
+-   macOS: `~/Library/Logs/tockler/main.log`
+-   Windows: `%USERPROFILE%\AppData\Roaming\tockler\logs\main.log`
 
-# Signing
+## Feedback
 
-https://4sysops.com/archives/sign-your-powershell-scripts-to-increase-security/'
-in powershell as admin
+Feel free to:
 
-```
-$cert = Get-ChildItem -Path Cert:\CurrentUser\My -CodeSigningCert
-Set-AuthenticodeSignature -FilePath '.\app\get-foreground-window-title.ps1' -Certificate $cert
-```
+-   Create issues for feature requests
+-   Star this project
+-   Share your feedback
 
-# Snapcraft token
+## License
 
-To generate SNAP_TOKEN run
-`snapcraft export-login --snaps=tockler --acls=package_upload,channel --channels=stable -`
-Copy output and Add SNAP_TOKEN to travis environment variables.
-In travis we have:
-`echo "$SNAP_TOKEN" | snapcraft login --with -`
+Tockler is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.
 
-# Errors
+MayGo (https://github.com/MayGo)
 
-### while installing electron deps: electron-builder Error: Unresolved node modules: ref
-
-Quick fix: ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES=true yarn
-
-# License
-
-GNU General Public License v2.0
-2021 MayGo (https://github.com/MayGo)
+Created by Maigo Erit @ <a href="https://trimatech.dev" target="_blank">trimatech.dev</a>

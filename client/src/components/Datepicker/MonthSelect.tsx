@@ -1,6 +1,4 @@
-import { Select } from '@chakra-ui/select';
-
-import React from 'react';
+import { Select } from '@chakra-ui/react';
 
 export const MonthSelect = ({ value, onChange }) => {
     const months = [

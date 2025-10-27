@@ -1,33 +1,34 @@
-import React, { useState, useEffect, memo } from 'react';
-import { TimeOutput } from 'react-timekeeper';
+import { Box, Button, Divider, Heading, Input, Select, Text, Tooltip } from '@chakra-ui/react';
+import { DateTime } from 'luxon';
 import randomcolor from 'randomcolor';
-import { ColorPicker } from './ColorPicker';
-import { Logger } from '../../logger';
-import moment from 'moment';
-import { Box, Divider, Heading } from '@chakra-ui/layout';
-import { Input } from '@chakra-ui/input';
-import { Button } from '@chakra-ui/button';
-import { Tooltip } from '@chakra-ui/tooltip';
-import { Select } from '@chakra-ui/select';
+import { memo, useEffect, useState } from 'react';
 import { AiOutlineClose, AiOutlineSave } from 'react-icons/ai';
-import { TimelineItemEditDeleteButton } from './TimelineItemEditDeleteButton';
 import { TIME_FORMAT_SHORT } from '../../constants';
-import { TimePicker } from './TimePicker';
-import { HStack, VStack } from '@chakra-ui/react';
-import { ITEM_TYPES } from '../../utils';
-import { changeColorForApp } from '../../services/appSettings.api';
-import { saveTrackItem, deleteByIds, updateTrackItemColor } from '../../services/trackItem.api';
-import { useStoreActions, useStoreState } from '../../store/easyPeasy';
-import { TrackItemType } from '../../enum/TrackItemType';
+import { Logger } from '../../logger';
+import { ColorPicker } from './ColorPicker';
+import { TimelineItemEditDeleteButton } from './TimelineItemEditDeleteButton';
 
-const COLOR_SCOPE_ONLY_THIS = 'ONLY_THIS';
+import { HStack, VStack } from '@chakra-ui/react';
+import { ITrackItem, SelectedTrackItem } from '../../@types/ITrackItem';
+import { TrackItemType } from '../../enum/TrackItemType';
+import { changeColorForApp } from '../../services/appSettings.api';
+import { deleteByIds, saveTrackItem, updateTrackItemColor } from '../../services/trackItem.api';
+import { useStoreActions, useStoreState } from '../../store/easyPeasy';
+import { ITEM_TYPES } from '../../utils';
+
+type ColorScope = 'ONLY_THIS' | 'NEW_ITEMS' | 'ALL_ITEMS';
+
+const COLOR_SCOPE_ONLY_THIS: ColorScope = 'ONLY_THIS';
 
 export const TimelineItemEdit = memo(() => {
-    const selectedTimelineItem = useStoreState(state => state.selectedTimelineItem);
-    const setSelectedTimelineItem = useStoreActions(actions => actions.setSelectedTimelineItem);
-    const fetchTimerange = useStoreActions(actions => actions.fetchTimerange);
+    const selectedTimelineItem = useStoreState((state) => state.selectedTimelineItem);
+    const setSelectedTimelineItem = useStoreActions((actions) => actions.setSelectedTimelineItem);
+    const fetchTimerange = useStoreActions((actions) => actions.fetchTimerange);
 
-    const [state, setState] = useState<any>({
+    const [state, setState] = useState<{
+        trackItem: SelectedTrackItem | null;
+        colorScope: ColorScope;
+    }>({
         trackItem: selectedTimelineItem,
         colorScope: COLOR_SCOPE_ONLY_THIS,
     });
@@ -35,7 +36,7 @@ export const TimelineItemEdit = memo(() => {
     const { trackItem, colorScope } = state;
 
     const deleteTimelineItem = async () => {
-        const id = trackItem.id;
+        const id = trackItem?.id;
         Logger.debug('Delete timeline trackItem', id);
 
         if (id) {
@@ -52,15 +53,20 @@ export const TimelineItemEdit = memo(() => {
 
     const saveTimelineItem = async () => {
         Logger.debug('Updating color for trackItem', trackItem, colorScope);
+        if (!trackItem) {
+            Logger.error('No trackItem');
+            return;
+        }
         try {
+            const color = trackItem.color || randomcolor();
             if (colorScope === 'ALL_ITEMS') {
-                await changeColorForApp(trackItem.app, trackItem.color);
-                await updateTrackItemColor(trackItem.app, trackItem.color);
+                await changeColorForApp(trackItem.app, color);
+                await updateTrackItemColor(trackItem.app, color);
             } else if (colorScope === 'NEW_ITEMS') {
-                await changeColorForApp(trackItem.app, trackItem.color);
-                await saveTrackItem(trackItem);
+                await changeColorForApp(trackItem.app, color);
+                await saveTrackItem(trackItem as ITrackItem);
             } else {
-                await saveTrackItem(trackItem);
+                await saveTrackItem(trackItem as ITrackItem);
             }
         } catch (error) {
             Logger.error('Saving track item failed', error);
@@ -81,59 +87,69 @@ export const TimelineItemEdit = memo(() => {
         });
     }, [selectedTimelineItem]);
 
-    const changeColorHandler = color => {
+    const changeColorHandler = (color) => {
         Logger.debug('Changed color:', color);
 
-        setState(oldState => ({
-            ...oldState,
-            trackItem: {
-                ...oldState.trackItem,
-                color,
-            },
-        }));
+        setState((oldState) => {
+            if (!oldState.trackItem) return oldState;
+            return {
+                ...oldState,
+                trackItem: {
+                    ...oldState.trackItem,
+                    color,
+                } as ITrackItem,
+            };
+        });
     };
 
-    const changeAppName = e => {
-        const { value } = e.target;
+    const changeAppName = (e) => {
+        const { value }: { value: string } = e.target;
         Logger.debug('Changed app name:', value);
 
-        setState(oldState => ({
-            ...oldState,
-            trackItem: {
-                ...oldState.trackItem,
-                app: value,
-            },
-        }));
+        setState((oldState) => {
+            if (!oldState.trackItem) return oldState;
+            return {
+                ...oldState,
+                trackItem: {
+                    ...oldState.trackItem,
+                    app: value,
+                } as ITrackItem,
+            };
+        });
     };
 
-    const changeTime = attr => (value: TimeOutput) => {
-        Logger.debug('Changed app time:', value);
-        const oldDate = moment(state.trackItem[attr]);
-        const newDate = oldDate
-            .startOf('day')
-            .set('hours', value.hour)
-            .set('minutes', value.minute);
+    const changeTime = (attr) => (timeStr: string) => {
+        Logger.debug('Changed app time:', timeStr);
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const oldDate = DateTime.fromJSDate(new Date(state.trackItem?.[attr] || 0));
+        const newDate = oldDate.startOf('day').set({ hour: hours, minute: minutes });
 
-        setState(oldState => ({
-            ...oldState,
-            trackItem: {
-                ...oldState.trackItem,
-                [attr]: newDate.valueOf(),
-            },
-        }));
+        setState((oldState) => {
+            if (!oldState.trackItem) return oldState;
+            return {
+                ...oldState,
+                trackItem: {
+                    ...oldState.trackItem,
+                    [attr]: newDate.toMillis(),
+                } as ITrackItem,
+            };
+        });
     };
 
-    const changeAppTitle = e => {
+    const changeAppTitle = (e) => {
         const { value } = e.target;
         Logger.debug('Changed app title:', value);
 
-        setState(oldState => ({
-            ...oldState,
-            trackItem: {
-                ...oldState.trackItem,
-                title: value,
-            },
-        }));
+        setState((oldState) => {
+            if (!oldState.trackItem) return oldState;
+            return {
+                ...oldState,
+                trackItem: {
+                    ...oldState.trackItem,
+                    title: value,
+                } as ITrackItem,
+            };
+        });
     };
 
     const closeEdit = () => {
@@ -141,11 +157,11 @@ export const TimelineItemEdit = memo(() => {
         clearTimelineItem();
     };
 
-    const changeColorScopeHandler = e => {
+    const changeColorScopeHandler = (e) => {
         const { value } = e.target;
         Logger.debug('Changed color scope:', value);
 
-        setState(oldState => ({
+        setState((oldState) => ({
             ...oldState,
             colorScope: value,
         }));
@@ -153,15 +169,18 @@ export const TimelineItemEdit = memo(() => {
 
     const saveBasedOnColorOptionHandler = () => {
         saveTimelineItem();
-        setState(oldState => ({
-            ...oldState,
-            trackItem: {
-                ...oldState.trackItem,
-                app: '',
-                title: '',
-                color: randomcolor(),
-            },
-        }));
+        setState((oldState) => {
+            if (!oldState.trackItem) return oldState;
+            return {
+                ...oldState,
+                trackItem: {
+                    ...oldState.trackItem,
+                    app: '',
+                    title: '',
+                    color: randomcolor(),
+                } as ITrackItem,
+            };
+        });
     };
 
     if (!selectedTimelineItem || !trackItem) {
@@ -172,53 +191,45 @@ export const TimelineItemEdit = memo(() => {
     const colorChanged = selectedTimelineItem.color !== trackItem.color;
     const isCreating = !selectedTimelineItem.id;
 
+    console.log('trackItem', trackItem);
+
     return (
         <Box width={600}>
             <VStack alignItems="flex-start" spacing={4}>
                 <Heading fontSize="xl" pb={2}>
-                    {ITEM_TYPES[trackItem.taskName] || 'New Task'}
+                    {trackItem.id && trackItem.taskName ? ITEM_TYPES[trackItem.taskName] : 'New Task'}
                 </Heading>
                 <HStack width="100%" spacing={4}>
                     <Box flex="2">
+                        <Input value={trackItem.app} placeholder="App" onChange={changeAppName} readOnly={readOnly} />
+                    </Box>
+                    <Box flex="1" maxWidth="120px">
                         <Input
-                            value={trackItem.app}
-                            placeholder="App"
-                            onChange={changeAppName}
+                            type="time"
+                            value={DateTime.fromJSDate(new Date(trackItem.beginDate)).toFormat(TIME_FORMAT_SHORT)}
+                            onChange={(e) => changeTime('beginDate')(e.target.value)}
                             readOnly={readOnly}
                         />
                     </Box>
-                    <Box flex="1" maxWidth="100px">
-                        <TimePicker
-                            time={moment(trackItem.beginDate).format(TIME_FORMAT_SHORT)}
-                            onChange={changeTime('beginDate')}
-                            readOnly={readOnly}
-                        />
-                    </Box>
-                    <Box flex="1" maxWidth="100px">
-                        <TimePicker
-                            time={moment(trackItem.endDate).format(TIME_FORMAT_SHORT)}
-                            onChange={changeTime('endDate')}
+                    <Text fontSize="md">➜</Text>
+                    <Box flex="1" maxWidth="120px">
+                        <Input
+                            type="time"
+                            value={DateTime.fromJSDate(new Date(trackItem.endDate)).toFormat(TIME_FORMAT_SHORT)}
+                            onChange={(e) => changeTime('endDate')(e.target.value)}
                             readOnly={readOnly}
                         />
                     </Box>
                 </HStack>
                 <Box w="100%">
-                    <Input
-                        value={trackItem.title}
-                        placeholder="Title"
-                        onChange={changeAppTitle}
-                        readOnly={readOnly}
-                    />
+                    <Input value={trackItem.title} placeholder="Title" onChange={changeAppTitle} readOnly={readOnly} />
                 </Box>
                 <HStack>
                     <Box>
                         <ColorPicker color={trackItem.color} onChange={changeColorHandler} />
                     </Box>
                     {colorChanged && (
-                        <Tooltip
-                            placement="left"
-                            label="Can also change color for all items or all future items"
-                        >
+                        <Tooltip placement="left" label="Can also change color for all items or all future items">
                             <Select value={colorScope} onChange={changeColorScopeHandler}>
                                 <option value="ONLY_THIS">This trackItem</option>
                                 <option value="NEW_ITEMS">Future items</option>

@@ -1,25 +1,19 @@
-import React, { useMemo } from 'react';
-import { Select } from '@chakra-ui/select';
+import { Select } from '@chakra-ui/react';
+import { Column } from '@tanstack/react-table';
+import { ITrackItem } from '../../@types/ITrackItem';
 import { ToggleColumnFilter } from './ToggleColumnFilter';
 
-export function SelectColumnFilter({ column: { filterValue, setFilter, preFilteredRows, id } }) {
-    // Calculate the options for filtering
-    // using the preFilteredRows
-    const options = useMemo(() => {
-        const options = new Set();
-        preFilteredRows.forEach((row) => {
-            options.add(row.values[id]);
-        });
-        return [...options.values()] as string[];
-    }, [id, preFilteredRows]);
+export function SelectColumnFilter({ column }: { column: Column<ITrackItem> }) {
+    const uniqueValues = column.getFacetedUniqueValues();
+    const options = Array.from(uniqueValues.keys());
+    const filterValue = column.getFilterValue() || '';
 
-    // Render a multi-select box
     return (
         <ToggleColumnFilter>
             <Select
-                value={filterValue}
+                value={filterValue as string}
                 onChange={(e) => {
-                    setFilter(e.target.value || undefined);
+                    column.setFilterValue(e.target.value || undefined);
                 }}
             >
                 <option value="">All</option>

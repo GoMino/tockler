@@ -1,38 +1,46 @@
-import React, { useEffect, useState, memo } from 'react';
-import { EventEmitter } from '../services/EventEmitter';
-import { Logger } from '../logger';
-import { Center, Box } from '@chakra-ui/layout';
-import { Text } from '@chakra-ui/react';
+import { Box, Text } from '@chakra-ui/react';
+import { memo, useEffect, useState } from 'react';
 import { ShortTimeInterval } from '../components/TrayList/ShortTimeInterval';
+import { Logger } from '../logger';
+import { ElectronEventEmitter } from '../services/ElectronEventEmitter';
+
+interface NotifyUserPayload {
+    durationMs: number;
+}
 
 const NotificationAppPageTemp = () => {
-    const [currentSession, setCurrentSession] = useState();
+    const [currentSession, setCurrentSession] = useState(0);
 
     useEffect(() => {
         const notifyUserReceiver = (payload) => {
-            Logger.debug('notifyUserReceiver', payload);
-            setCurrentSession(payload);
+            const data = payload as NotifyUserPayload;
+            Logger.info('Notification received in client:', payload, data.durationMs);
+            setCurrentSession(data.durationMs || 0);
         };
 
-        EventEmitter.on('notifyUser', notifyUserReceiver);
+        ElectronEventEmitter.on('notifyUser', notifyUserReceiver);
 
         return () => {
-            EventEmitter.off('notifyUser', notifyUserReceiver);
+            ElectronEventEmitter.off('notifyUser', notifyUserReceiver);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
-        <Box p={1} bg={'brand.mainColor'}>
-            <Center>
-                <Text fontSize="small" color="white">
-                    {currentSession && <ShortTimeInterval totalMs={currentSession} />}
-                </Text>
-            </Center>
+        <Box
+            p={1}
+            bg={'brand.mainColor'}
+            height="100vh"
+            width="full"
+            overflow="hidden"
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+        >
+            <Text fontSize="sm" color="white" textAlign="center">
+                {currentSession && <ShortTimeInterval totalMs={currentSession} />}
+            </Text>
         </Box>
     );
 };
-
-NotificationAppPageTemp.whyDidYouRender = true;
 
 export const NotificationAppPage = memo(NotificationAppPageTemp);

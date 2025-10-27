@@ -1,17 +1,17 @@
 import { extendTheme } from '@chakra-ui/react';
+import { mode } from '@chakra-ui/theme-tools';
 import { CalendarDayStyle, CalendarStyle } from '../components/Datepicker/CalendarStyle';
+import { getThemeFromStorage } from '../services/settings.api';
+import { THEMES } from '../store/theme.util';
 import { ButtonStyle } from './components/button';
+import { ColorPickerStyle } from './components/colorPicker';
 import { FormLabelStyle } from './components/form-label';
 import { InputStyle } from './components/input';
 import { SelectStyle } from './components/select';
 import { TableStyle } from './components/table';
 import { TabsStyle } from './components/tabs';
 import { TextareaStyle } from './components/textarea';
-import { getThemeFromStorage } from '../services/settings.api';
-import { THEMES } from '../store/theme.util';
-import { ColorPickerStyle } from './components/colorPicker';
-import { mode } from '@chakra-ui/theme-tools';
-import { PaywallStyle } from './components/paywall';
+import { MAIN_THEME_COLOR } from './theme.utils';
 
 const savedTheme = getThemeFromStorage();
 const initialColorMode = savedTheme || THEMES.LIGHT;
@@ -23,12 +23,10 @@ const config = {
     useSystemColorMode: false,
 };
 
-export const MAIN_THEME_COLOR = '#7C3AED';
-
 export const theme = extendTheme({
     config,
     styles: {
-        global: props => ({
+        global: (props) => ({
             'html, body': {
                 // color: mode('gray.600', 'white')(props),
                 bg: mode('gray.50', 'gray.800')(props),
@@ -53,6 +51,5 @@ export const theme = extendTheme({
         Select: SelectStyle,
         FormLabel: FormLabelStyle,
         ColorPicker: ColorPickerStyle,
-        Paywall: PaywallStyle,
     },
 });

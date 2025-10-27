@@ -1,22 +1,40 @@
-import { Box, Flex, Text } from '@chakra-ui/layout';
-import React, { memo } from 'react';
-import { HStack, IconButton } from '@chakra-ui/react';
-import { convertDate, DATE_TIME_FORMAT } from '../../constants';
+import { Box, Flex, HStack, IconButton, Text } from '@chakra-ui/react';
+import { memo } from 'react';
 import { FaPlay, FaStop } from 'react-icons/fa';
+import { convertDate, DATE_TIME_FORMAT } from '../../constants';
 import { shortTime } from '../../time.util';
 import { OverflowText } from '../TrackItemTable/OverflowText';
 import { ShortTimeInterval } from './ShortTimeInterval';
+import { AggregatedTrackItem } from './TrayList';
 
-const formatDate = (date) => convertDate(date).format(DATE_TIME_FORMAT);
+const formatDate = (date: number) => convertDate(date).toFormat(DATE_TIME_FORMAT);
 
-const FormattedTime = ({ beginDate, endDate, isRunning }: any) => {
+const FormattedTime = ({
+    beginDate,
+    endDate,
+    isRunning,
+}: {
+    beginDate: number;
+    endDate: number;
+    isRunning: boolean;
+}) => {
     const full = isRunning ? `${formatDate(beginDate)}` : `${formatDate(beginDate)} - ${formatDate(endDate)}`;
 
     return <span>{full}</span>;
 };
 
-export function TrayListItemPlain({ item, startNewLogItemFromOld, stopRunningLogItem }: any) {
-    const { isRunning, totalMs, title, app, color } = item;
+export function TrayListItemPlain({
+    item,
+    startNewLogItemFromOld,
+    stopRunningLogItem,
+    isRunning,
+}: {
+    item: AggregatedTrackItem;
+    startNewLogItemFromOld: (item: AggregatedTrackItem) => void;
+    stopRunningLogItem: () => void;
+    isRunning: boolean;
+}) {
+    const { totalDuration, title, app, color } = item;
     return (
         <Box p={4}>
             <HStack alignItems="center" width="100%" pr={2}>
@@ -35,14 +53,14 @@ export function TrayListItemPlain({ item, startNewLogItemFromOld, stopRunningLog
 
                     <Flex alignItems="center" pl={4}>
                         <Text fontSize="xs">
-                            <FormattedTime {...item} />
+                            <FormattedTime {...item} isRunning={isRunning} />
                         </Text>
 
                         <Text fontSize="xs" fontWeight="bold" pl={3}>
-                            {totalMs > 1 && (
+                            {totalDuration > 1 && (
                                 <>
-                                    {!isRunning && shortTime(totalMs)}
-                                    {isRunning && <ShortTimeInterval totalMs={totalMs} />}
+                                    {!isRunning && shortTime(totalDuration)}
+                                    {isRunning && <ShortTimeInterval totalMs={totalDuration} />}
                                 </>
                             )}
                         </Text>
@@ -57,7 +75,5 @@ export function TrayListItemPlain({ item, startNewLogItemFromOld, stopRunningLog
         </Box>
     );
 }
-
-TrayListItemPlain.whyDidYouRender = true;
 
 export const TrayListItem = memo(TrayListItemPlain);
